@@ -2,7 +2,6 @@ package no.plasmid.bird;
 
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
-import no.plasmid.bird.im.TerrainTile;
 import no.plasmid.bird.im.Vertex3d;
 
 import org.lwjgl.LWJGLException;

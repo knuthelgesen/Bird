@@ -1,7 +1,7 @@
 package no.plasmid.bird.im;
 
 import no.plasmid.bird.Configuration;
-import no.plasmid.bird.im.util.PerlinNoise;
+import no.plasmid.bird.util.PerlinNoise;
 
 public class Terrain {
 
