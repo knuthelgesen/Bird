@@ -14,6 +14,7 @@ public class App
 	
 	private InputHandler inputHandler;
 	private Renderer renderer;
+	private TerrainTileManager terrainTileManager;
 	
     public static void main( String[] args )
     {
@@ -43,6 +44,9 @@ public class App
         //Create and initialize the renderer
         renderer = new Renderer();
         renderer.initializeRenderer();
+        
+        //Create the terrain tile manager
+        terrainTileManager = new TerrainTileManager();
     }
     
     /**
@@ -51,15 +55,17 @@ public class App
     private void runApplication() {
     	//Create the camera
     	Camera camera = new Camera();
-    	camera.setPosition(new Vertex3d(new double[]{0.0, -8.0, 0.0}));
+    	camera.setPosition(new Vertex3d(new double[]{0.0, 0.0, 0.0}));
     	camera.setRotation(new Vertex3d(new double[]{0.0, 135.0, 0.0}));
     	
         //Create the terrain
     	Terrain terrain = new Terrain();
     	
+    	terrainTileManager.startTerainTileUpdateThread(terrain, camera);
+    	
     	while (!inputHandler.isCloseRequested()) {
-    		//Render scene
-    		renderer.render(terrain, camera);
+        	//Render scene
+    		renderer.render(terrainTileManager.getTileList(), terrain, camera);
     		
     		//Handle input
     		inputHandler.handleInput();
@@ -73,6 +79,8 @@ public class App
     		//Update display
     		Display.update();
     	}
+    	
+    	terrainTileManager.stopTerrainTileUpdateThread();
     }
     
     /**

@@ -1,5 +1,7 @@
 package no.plasmid.bird;
 
+import java.util.List;
+
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
 import no.plasmid.bird.im.TerrainTile;
@@ -29,7 +31,7 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void render(Terrain terrain, Camera camera) {
+	public void render(List<TerrainTile> tileList, Terrain terrain, Camera camera) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -46,9 +48,8 @@ public class Renderer {
 		double[] cameraPosValues = camera.getPosition().getValues();
 		GL11.glTranslated(cameraPosValues[0], cameraPosValues[1], cameraPosValues[2]);
 		
-		for (int terrainX = 0; terrainX < Configuration.TERRAIN_SIZE; terrainX++) {
-			for (int terrainZ = 0; terrainZ < Configuration.TERRAIN_SIZE; terrainZ++) {
-				TerrainTile tile = terrain.getTiles()[terrainX][terrainZ];
+		for (TerrainTile tile : tileList) {
+			if (tile.isReadyForDrawing()) {
 				Vertex3d[][] strips = tile.getMesh().getStrips();
 				for (int tileX = 0; tileX < Configuration.TERRAIN_TILE_SIZE; tileX++) {
 					GL11.glBegin(GL11.GL_TRIANGLE_STRIP);

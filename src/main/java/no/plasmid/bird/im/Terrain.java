@@ -19,17 +19,14 @@ public class Terrain {
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
 				heightMap[x][z] = Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * noise.getHeight(x, z)
-						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 40;
+						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 40
+						- 10;
 			}
 		}
-		
-		//Generate tiles
-		tiles = new TerrainTile[Configuration.TERRAIN_SIZE][Configuration.TERRAIN_SIZE];
-		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
-			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
-				tiles[x][z] = new TerrainTile(x, z, heightMap[x][z], heightMap[x + 1][z], heightMap[x + 1][z + 1], heightMap[x][z + 1]);
-			}
-		}
+	}
+	
+	public double[][] getHeightMap() {
+		return heightMap;
 	}
 	
 	public TerrainTile[][] getTiles() {
