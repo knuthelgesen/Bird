@@ -16,11 +16,6 @@ public class TerrainTileManager {
 
 	public TerrainTileManager() {
 		tileList = new LinkedList<TerrainTile>();
-		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
-			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
-				tileList.add(new TerrainTile(x, z));
-			}
-		}
 	}
 
 	public List<TerrainTile> getTileList() {
@@ -28,6 +23,16 @@ public class TerrainTileManager {
 	}
 	
 	public void startTerainTileUpdateThread(Terrain terrain, Camera camera) {
+		//Create tiles
+		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
+			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
+				TerrainTile tile = new TerrainTile(x, z);
+				tileList.add(tile);
+				terrain.getTiles()[x][z] = tile;
+			}
+		}
+
+		//Create and start update thread
 		terrainTileUpdateThread = new TerrainTileUpdateThread(camera, terrain);
 		terrainTileUpdateThread.start();
 	}
