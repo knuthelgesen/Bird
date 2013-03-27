@@ -1,16 +1,31 @@
 package no.plasmid.bird.im;
 
 import no.plasmid.bird.Configuration;
+import no.plasmid.bird.util.PerlinNoise;
 
 public class TerrainTileMesh {
 
+	private static PerlinNoise noise = new PerlinNoise(Configuration.TERRAIN_TILE_NOISE_PERSISTENCE,
+			Configuration.TERRAIN_TILE_NOISE_FREQUENCY, Configuration.TERRAIN_TILE_NOISE_AMPLITUDE,
+			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
+
 	private Vertex3d[][] strips;	//Triangle strips vertices
+	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	
 	public TerrainTileMesh() {
+//		heightMap = 
 	}
 		
-	public void generateMeshFromHeightMap(double[][] heightMap, int divisionSize, int xOffsetStart, int zOffsetStart) {
+	public void generateMeshFromHeightMap(double y11, double y12, double y21, double y22, int divisionSize, int xOffsetStart, int zOffsetStart) {
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		
+		//Generate heightmap
+		int heightMapSize = detail + 1;
+		for (int x = 0; x < heightMapSize; x++) {
+			for (int z = 0; z < heightMapSize; z++) {
+				heightMap[x][z] = (bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 200 + noise.getHeight(xOffsetStart + x * divisionSize, zOffsetStart + z * divisionSize) * 5) ;
+			}
+		}
 		
 		//Generate triangle strips
 		strips = new Vertex3d[detail][];
@@ -30,6 +45,25 @@ public class TerrainTileMesh {
 	
 	public Vertex3d[][] getStrips() {
 		return strips;
+	}
+	
+	private double bilinearInterpolate(double q11, double q12, double q21, double q22, double x, double y, int divisionSize) {
+		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
+		double r1 = ((heightMapSize - x)/(heightMapSize - 0)) * q11 + ((x - 0)/(heightMapSize - 0)) * q21;
+		double r2 = ((heightMapSize - x)/(heightMapSize - 0)) * q12 + ((x - 0)/(heightMapSize - 0)) * q22;
+		
+		double rc = (heightMapSize - y)/(heightMapSize - 0) * r1 + (heightMapSize - y)/(heightMapSize - 0) * r2;
+		
+		double x1 = 0;
+		double x2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		double y1 = 0;
+		double y2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		
+		rc = ((((x2 - x) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q11)
+				+ ((((x - x1) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q21)
+				+ ((((x2 - x) * (y - y1)) / ((x2 - x1) * (y2 - y1))) * q12)
+				+ ((((x - x1) * (y - y1)) / ((x2 - x1) * (y2 - y1))) * q22);
+		return rc;
 	}
 	
 }

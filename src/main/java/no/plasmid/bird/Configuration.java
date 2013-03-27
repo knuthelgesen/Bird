@@ -2,8 +2,8 @@ package no.plasmid.bird;
 
 public class Configuration {
 	public static final String WINDOW_TITLE	= "Bird";
-	public static final int WINDOW_WIDTH		= 500;
-	public static final int WINDOW_HEIGTH		= 500;
+	public static final int WINDOW_WIDTH		= 900;
+	public static final int WINDOW_HEIGTH		= 900;
 
 	public static final int TERRAIN_SIZE		= 256;	//Unit is terrain tiles
 	public static final int TERRAIN_TILE_SIZE	= 256;	//Unit is meters

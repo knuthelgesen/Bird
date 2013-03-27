@@ -6,6 +6,7 @@ import java.util.List;
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
 import no.plasmid.bird.im.TerrainTile;
+import no.plasmid.bird.im.TerrainTileMesh;
 
 public class TerrainTileManager {
 
@@ -44,9 +45,13 @@ public class TerrainTileManager {
 		private Camera camera;
 		private Terrain terrain;
 		
+		private List<TerrainTileMesh> unusedMeshes;
+		
 		private TerrainTileUpdateThread(Camera camera, Terrain terrain) {
 			this.camera = camera;
 			this.terrain = terrain;
+			
+			unusedMeshes = new LinkedList<TerrainTileMesh>();
 		}
 		
 		public void setFinished() {
@@ -59,20 +64,26 @@ public class TerrainTileManager {
 				int cameraTileZ = (int)-camera.getPosition().getValues()[2] / Configuration.TERRAIN_TILE_SIZE;
 				for (TerrainTile tile : tileList) {
 					int range = calculateRange(cameraTileX, tile.getTileX(), cameraTileZ, tile.getTileZ());
-					if (range > 55) {
-						tile.dropMesh();
+					if (range > 150) {
+						if (tile.isReadyForDrawing()) {
+							unusedMeshes.add(tile.dropMesh());
+						}
 					} else {
-						int divisionsSize = nextPow2(range);
+						int divisionsSize = nextPow2(range * 2);
 						
 						divisionsSize = Math.max(1, divisionsSize);
 						divisionsSize = Math.min(Configuration.TERRAIN_TILE_SIZE, divisionsSize);
 						if (!tile.isReadyForDrawing()) {
-							tile.generateMesh(terrain, divisionsSize);
+							if (unusedMeshes.size() < 10) {
+								add100UnusedMeshes();
+							}
+							tile.generateMesh(terrain, divisionsSize, unusedMeshes.remove(0));
 						} else {
 							if (tile.getDivisionSize() != divisionsSize) {
-//								tile.dropMesh();
-//								
-//								tile.generateMesh(terrain, divisionsSize);
+								if (unusedMeshes.size() < 10) {
+									add100UnusedMeshes();
+								}
+								unusedMeshes.add(tile.replaceMesh(terrain, divisionsSize, unusedMeshes.remove(0)));
 							}
 						}
 					}
@@ -94,6 +105,12 @@ public class TerrainTileManager {
 				rc = rc << 1;
 			}
 			return rc;
+		}
+		
+		private void add100UnusedMeshes() {
+			for (int i = 0; i < 100; i++) {
+				unusedMeshes.add(new TerrainTileMesh());
+			}
 		}
 	}
 	
