@@ -9,11 +9,12 @@ public class TerrainTileMesh {
 			Configuration.TERRAIN_TILE_NOISE_FREQUENCY, Configuration.TERRAIN_TILE_NOISE_AMPLITUDE,
 			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
 
-	private Vertex3d[][] strips;	//Triangle strips vertices
 	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+
+	private Vertex3d[][] strips;	//Triangle strips vertices
+	private int[] vertexCounts;
 	
 	public TerrainTileMesh() {
-//		heightMap = 
 	}
 		
 	public void generateMeshFromHeightMap(double y11, double y12, double y21, double y22, int divisionSize, int xOffsetStart, int zOffsetStart) {
@@ -23,14 +24,16 @@ public class TerrainTileMesh {
 		int heightMapSize = detail + 1;
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
-				heightMap[x][z] = (bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 200 + noise.getHeight(xOffsetStart + x * divisionSize, zOffsetStart + z * divisionSize) * 5) ;
+				heightMap[x][z] = (bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 150 + noise.getHeight(xOffsetStart + x * divisionSize, zOffsetStart + z * divisionSize) * 15) ;
 			}
 		}
 		
 		//Generate triangle strips
 		strips = new Vertex3d[detail][];
+		vertexCounts = new int[detail];
 		for (int x = 0; x < detail; x++) {
 			strips[x] = new Vertex3d[(detail + 1) * 2];
+			vertexCounts[x] = (detail + 1) * 2;
 			int vertexCount = 0;
 			strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x][0]), 0 * divisionSize + zOffsetStart});
 
@@ -45,6 +48,10 @@ public class TerrainTileMesh {
 	
 	public Vertex3d[][] getStrips() {
 		return strips;
+	}
+	
+	public int[] getVertexCounts() {
+		return vertexCounts;
 	}
 	
 	private double bilinearInterpolate(double q11, double q12, double q21, double q22, double x, double y, int divisionSize) {

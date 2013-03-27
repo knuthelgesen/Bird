@@ -49,18 +49,30 @@ public class Renderer {
 		GL11.glTranslated(cameraPosValues[0], cameraPosValues[1], cameraPosValues[2]);
 		
 		for (TerrainTile tile : tileList) {
-			if (tile.isReadyForDrawing()) {
-				Vertex3d[][] strips = tile.getMesh().getStrips();
-				int detail = tile.getDetail();
-				for (int tileX = 0; tileX < detail; tileX++) {
-					GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
-					{
-						for (int i = 0; i < (detail + 1) * 2; i++) {
-							GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
-						}
+			try {
+				if (tile.isReadyForDrawing()) {
+					Vertex3d[][] strips = tile.getMesh().getStrips();
+					int[] vertexCounts = tile.getMesh().getVertexCounts();
+					int detail = tile.getDetail();
+					for (int tileX = 0; tileX < detail; tileX++) {
+						GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+						{
+							try {
+								for (int i = 0; i < vertexCounts[tileX]; i++) {
+										GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
+								}
+							} catch (Exception e) {
+								GL11.glEnd();
+								e.printStackTrace();
+								continue;
+							}
 					}
-					GL11.glEnd();
+						GL11.glEnd();
+					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
 			}
 		}
 	}
