@@ -14,8 +14,8 @@ public class Configuration {
 	public static final int TERRAIN_NOISE_OCTAVES			= 15;
 	public static final int TERRAIN_NOISE_RANDOM_SEED		= 1;
 
-	public static final double TERRAIN_TILE_NOISE_PERSISTENCE	= 0.32;
-	public static final double TERRAIN_TILE_NOISE_FREQUENCY	= 0.07;
+	public static final double TERRAIN_TILE_NOISE_PERSISTENCE	= 0.22;
+	public static final double TERRAIN_TILE_NOISE_FREQUENCY	= 0.01;
 	public static final double TERRAIN_TILE_NOISE_AMPLITUDE	= 5.0;
 	public static final int TERRAIN_TILE_NOISE_OCTAVES			= 5;
 	public static final int TERRAIN_TILE_NOISE_RANDOM_SEED		= 1;
