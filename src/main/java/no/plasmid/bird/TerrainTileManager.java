@@ -55,14 +55,25 @@ public class TerrainTileManager {
 		
 		public void run() {
 			while (!finished) {
-				int cameraTileX = (int)-camera.getPosition().getValues()[0] / 256;
-				int cameraTileZ = (int)-camera.getPosition().getValues()[2] / 256;
+				int cameraTileX = (int)-camera.getPosition().getValues()[0] / Configuration.TERRAIN_TILE_SIZE;
+				int cameraTileZ = (int)-camera.getPosition().getValues()[2] / Configuration.TERRAIN_TILE_SIZE;
 				for (TerrainTile tile : tileList) {
-					if (calculateRange(cameraTileX, tile.getTileX(), cameraTileZ, tile.getTileZ()) > 55) {
+					int range = calculateRange(cameraTileX, tile.getTileX(), cameraTileZ, tile.getTileZ());
+					if (range > 55) {
 						tile.dropMesh();
 					} else {
+						int divisionsSize = nextPow2(range);
+						
+						divisionsSize = Math.max(1, divisionsSize);
+						divisionsSize = Math.min(Configuration.TERRAIN_TILE_SIZE, divisionsSize);
 						if (!tile.isReadyForDrawing()) {
-							tile.generateMesh(terrain);
+							tile.generateMesh(terrain, divisionsSize);
+						} else {
+							if (tile.getDivisionSize() != divisionsSize) {
+//								tile.dropMesh();
+//								
+//								tile.generateMesh(terrain, divisionsSize);
+							}
 						}
 					}
 				}
@@ -75,6 +86,14 @@ public class TerrainTileManager {
 		 */
 		private int calculateRange(int x1, int x2, int z1, int z2) {
 			return Math.abs(x2 - x1) + Math.abs(z2 - z1);
+		}
+		
+		private int nextPow2(int value) {
+			int rc = 1;
+			while (rc < value) {
+				rc = rc << 1;
+			}
+			return rc;
 		}
 	}
 	

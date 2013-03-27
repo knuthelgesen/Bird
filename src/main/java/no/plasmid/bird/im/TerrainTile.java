@@ -13,8 +13,14 @@ public class TerrainTile {
 			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
 	
 	private boolean readyForDrawing;
+	private int detail = 1;
+	private int divisionSize = Configuration.TERRAIN_TILE_SIZE;
 	private TerrainTileMesh mesh;
 	
+	/**
+	 * @param tileX X position relative to other tiles
+	 * @param tileZ Z position relative to other tiles
+	 */
 	public TerrainTile(int tileX, int tileZ) {
 		this.tileX = tileX;
 		this.tileZ = tileZ;
@@ -34,60 +40,69 @@ public class TerrainTile {
 		return readyForDrawing;
 	}
 	
+	public int getDetail() {
+		return detail;
+	}
+	
+	public int getDivisionSize() {
+		return divisionSize;
+	}
+	
 	public TerrainTileMesh getMesh() {
 		return mesh;
 	}
 	
 	/**
-	 * @param tileX X position relative to other tiles
-	 * @param tileZ Z position relative to other tiles
-	 * @param y1 height of corner
-	 * @param y2 height of corner
-	 * @param y3 height of corner
-	 * @param y4 height of corner
+	 * @param terrain The terrain
+	 * @param divisionSize Indicates the level of detail. 1 is highest detail, 256 is lowest.
 	 */
-	public void generateMesh(Terrain terrain) {
+	public void generateMesh(Terrain terrain, int divisionSize) {
 		double[][] terrainHeightMap = terrain.getHeightMap();
 		double y11 = terrainHeightMap[tileX][tileZ];
 		double y21 = terrainHeightMap[tileX + 1][tileZ];
 		double y22 = terrainHeightMap[tileX + 1][tileZ + 1];
 		double y12 = terrainHeightMap[tileX][tileZ + 1];
 		
+		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+
+		this.detail = detail;
+		this.divisionSize = divisionSize;
+		
 		//Calculate offsets
 		int xOffsetStart = tileX * Configuration.TERRAIN_TILE_SIZE;
 		int zOffsetStart = tileZ * Configuration.TERRAIN_TILE_SIZE;
 
 		//Generate heightmap
-		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
-		double[][] heightMap = new double[heightMapSize][heightMapSize];
+		int heightMapSize = detail + 1;
+		double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
-				heightMap[x][z] = bilinearInterpolate(y11, y12, y21, y22, x, z) + noise.getHeight(xOffsetStart + x, zOffsetStart + z);
+				heightMap[x][z] = (bilinearInterpolate(y11, y12, y21, y22, x, z) * 200 + noise.getHeight(xOffsetStart + x * divisionSize, zOffsetStart + z * divisionSize) * 5) ;
 			}
 		}
 		
 		//Generate mesh
 		mesh = new TerrainTileMesh();
-		mesh.generateMeshFromHeightMap(heightMap, xOffsetStart, zOffsetStart);
-		
+		mesh.generateMeshFromHeightMap(heightMap, divisionSize, xOffsetStart, zOffsetStart);
+
 		readyForDrawing = true;
 	}
-	
+		
 	public void dropMesh() {
 		readyForDrawing = false;
 	}
 
 	private double bilinearInterpolate(double q11, double q12, double q21, double q22, double x, double y) {
-		int heightMapSize = Configuration.TERRAIN_TILE_SIZE;
+		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
 		double r1 = ((heightMapSize - x)/(heightMapSize - 0)) * q11 + ((x - 0)/(heightMapSize - 0)) * q21;
 		double r2 = ((heightMapSize - x)/(heightMapSize - 0)) * q12 + ((x - 0)/(heightMapSize - 0)) * q22;
 		
 		double rc = (heightMapSize - y)/(heightMapSize - 0) * r1 + (heightMapSize - y)/(heightMapSize - 0) * r2;
 		
 		double x1 = 0;
-		double x2 = Configuration.TERRAIN_TILE_SIZE;
+		double x2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 		double y1 = 0;
-		double y2 = Configuration.TERRAIN_TILE_SIZE;
+		double y2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 		
 		rc = ((((x2 - x) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q11)
 				+ ((((x - x1) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q21)

@@ -8,19 +8,23 @@ public class TerrainTileMesh {
 	
 	public TerrainTileMesh() {
 	}
-	
-	public void generateMeshFromHeightMap(double[][] heightMap, int xOffsetStart, int zOffsetStart) {
+		
+	public void generateMeshFromHeightMap(double[][] heightMap, int divisionSize, int xOffsetStart, int zOffsetStart) {
+		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		
 		//Generate triangle strips
-		strips = new Vertex3d[Configuration.TERRAIN_TILE_SIZE][];
-		for (int x = 0; x < Configuration.TERRAIN_TILE_SIZE; x++) {
-			strips[x] = new Vertex3d[(Configuration.TERRAIN_TILE_SIZE + 1) * 2];
+		strips = new Vertex3d[detail][];
+		for (int x = 0; x < detail; x++) {
+			strips[x] = new Vertex3d[(detail + 1) * 2];
 			int vertexCount = 0;
-			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + xOffsetStart) * Configuration.HOROZONTAL_SCALE, (heightMap[x][0]) * Configuration.VERTICAL_SCALE, (0 + zOffsetStart) * Configuration.HOROZONTAL_SCALE});
-			for (int z = 0; z < Configuration.TERRAIN_TILE_SIZE; z++) {
-				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1 + xOffsetStart) * Configuration.HOROZONTAL_SCALE, (heightMap[x + 1][z]) * Configuration.VERTICAL_SCALE, (z + zOffsetStart) * Configuration.HOROZONTAL_SCALE});
-				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + xOffsetStart) * Configuration.HOROZONTAL_SCALE, (heightMap[x][z + 1]) * Configuration.VERTICAL_SCALE, (z + 1 + zOffsetStart) * Configuration.HOROZONTAL_SCALE});
+			strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x][0]), 0 * divisionSize + zOffsetStart});
+
+			for (int z = 0; z < detail; z++) {
+				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[x + 1][z]), z * divisionSize + zOffsetStart});
+				strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x][z + 1]), (z + 1) * divisionSize + zOffsetStart});
 			}
-			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1 + xOffsetStart) * Configuration.HOROZONTAL_SCALE, (heightMap[x + 1][Configuration.TERRAIN_TILE_SIZE]) * Configuration.VERTICAL_SCALE, (Configuration.TERRAIN_TILE_SIZE + zOffsetStart) * Configuration.HOROZONTAL_SCALE});
+			
+			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[x + 1][detail]), divisionSize * detail + zOffsetStart});
 		}
 	}
 	

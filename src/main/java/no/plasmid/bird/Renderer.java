@@ -51,10 +51,10 @@ public class Renderer {
 		for (TerrainTile tile : tileList) {
 			if (tile.isReadyForDrawing()) {
 				Vertex3d[][] strips = tile.getMesh().getStrips();
-				for (int tileX = 0; tileX < Configuration.TERRAIN_TILE_SIZE; tileX++) {
+				for (int tileX = 0; tileX < tile.getDetail(); tileX++) {
 					GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
 					{
-						for (int i = 0; i < strips[tileX].length; i++) {
+						for (int i = 0; i < (tile.getDetail() + 1) * 2; i++) {
 							GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
 						}
 					}
