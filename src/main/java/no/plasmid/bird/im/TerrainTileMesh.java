@@ -17,9 +17,20 @@ public class TerrainTileMesh {
 	public TerrainTileMesh() {
 	}
 		
-	public void generateMeshFromHeightMap(double y11, double y12, double y21, double y22, int divisionSize, int xOffsetStart, int zOffsetStart) {
+	public void generateMeshFromHeightMap(Terrain terrain, int tileX, int tileZ, int divisionSize) {
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+
+		//Find the height of the corners
+		double[][] terrainHeightMap = terrain.getHeightMap();
+		double y11 = terrainHeightMap[tileX][tileZ];
+		double y21 = terrainHeightMap[tileX + 1][tileZ];
+		double y22 = terrainHeightMap[tileX + 1][tileZ + 1];
+		double y12 = terrainHeightMap[tileX][tileZ + 1];
 		
+		//Calculate offsets
+		int xOffsetStart = tileX * Configuration.TERRAIN_TILE_SIZE;
+		int zOffsetStart = tileZ * Configuration.TERRAIN_TILE_SIZE;
+
 		//Generate heightmap
 		int heightMapSize = detail + 1;
 		for (int x = 0; x < heightMapSize; x++) {
