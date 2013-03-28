@@ -32,10 +32,10 @@ public class TerrainTileMesh {
 		int zOffsetStart = tileZ * Configuration.TERRAIN_TILE_SIZE;
 
 		//Generate heightmap
-		int heightMapSize = detail + 1;
-		for (int x = 0; x < heightMapSize; x++) {
-			for (int z = 0; z < heightMapSize; z++) {
-				heightMap[x][z] = (bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 150 + noise.getHeight(xOffsetStart + x * divisionSize, zOffsetStart + z * divisionSize) * 15) ;
+		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
+		for (int x = 0; x < heightMapSize; x += divisionSize) {
+			for (int z = 0; z < heightMapSize; z += divisionSize) {
+				heightMap[x][z] = bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 150 + noise.getHeight(xOffsetStart + x, zOffsetStart + z) * 15;
 			}
 		}
 		
@@ -46,14 +46,14 @@ public class TerrainTileMesh {
 			strips[x] = new Vertex3d[(detail + 1) * 2];
 			vertexCounts[x] = (detail + 1) * 2;
 			int vertexCount = 0;
-			strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x][0]), 0 * divisionSize + zOffsetStart});
+			strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x * divisionSize][0]), 0 * divisionSize + zOffsetStart});
 
 			for (int z = 0; z < detail; z++) {
-				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[x + 1][z]), z * divisionSize + zOffsetStart});
-				strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x][z + 1]), (z + 1) * divisionSize + zOffsetStart});
+				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1)* divisionSize][z * divisionSize]), z * divisionSize + zOffsetStart});
+				strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x* divisionSize][(z + 1) * divisionSize]), (z + 1) * divisionSize + zOffsetStart});
 			}
 			
-			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[x + 1][detail]), divisionSize * detail + zOffsetStart});
+			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1) * divisionSize][detail * divisionSize]), divisionSize * detail + zOffsetStart});
 		}
 	}
 	
@@ -73,9 +73,9 @@ public class TerrainTileMesh {
 		double rc = (heightMapSize - y)/(heightMapSize - 0) * r1 + (heightMapSize - y)/(heightMapSize - 0) * r2;
 		
 		double x1 = 0;
-		double x2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		double x2 = Configuration.TERRAIN_TILE_SIZE ;
 		double y1 = 0;
-		double y2 = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		double y2 = Configuration.TERRAIN_TILE_SIZE ;
 		
 		rc = ((((x2 - x) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q11)
 				+ ((((x - x1) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q21)
