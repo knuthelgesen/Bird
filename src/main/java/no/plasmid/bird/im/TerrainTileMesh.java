@@ -33,27 +33,55 @@ public class TerrainTileMesh {
 
 		//Generate heightmap
 		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
-		for (int x = 0; x < heightMapSize; x += divisionSize) {
-			for (int z = 0; z < heightMapSize; z += divisionSize) {
-				heightMap[x][z] = bilinearInterpolate(y11, y12, y21, y22, x, z, divisionSize) * 150 + noise.getHeight(xOffsetStart + x, zOffsetStart + z) * 15;
+		int heightMapDivisionSize = divisionSize / 2;
+		if (divisionSize == 1) {
+			heightMapDivisionSize = 1;
+		}
+		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
+			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
+				heightMap[x][z] = bilinearInterpolate(y11, y12, y21, y22, x, z, heightMapDivisionSize) * 150 + noise.getHeight(xOffsetStart + x, zOffsetStart + z) * 15;
 			}
+		}
+		
+		TerrainTile[][] tiles = terrain.getTiles();
+		boolean stitchNegX = false;
+		if (tileX != 0 && tiles[tileX - 1][tileZ] != null && tiles[tileX - 1][tileZ].isReadyForDrawing() && tiles[tileX - 1][tileZ].getDivisionSize() < divisionSize) {
+			stitchNegX = true;
 		}
 		
 		//Generate triangle strips
 		strips = new Vertex3d[detail][];
 		vertexCounts = new int[detail];
 		for (int x = 0; x < detail; x++) {
-			strips[x] = new Vertex3d[(detail + 1) * 2];
-			vertexCounts[x] = (detail + 1) * 2;
 			int vertexCount = 0;
-			strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x * divisionSize][0]), 0 * divisionSize + zOffsetStart});
 
-			for (int z = 0; z < detail; z++) {
-				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1)* divisionSize][z * divisionSize]), z * divisionSize + zOffsetStart});
-				strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x* divisionSize][(z + 1) * divisionSize]), (z + 1) * divisionSize + zOffsetStart});
+			if (stitchNegX && x == 0) {
+				strips[x] = new Vertex3d[(detail + 1) * 5];
+				
+				for (int z = 0; z < detail; z++) {
+					strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x * divisionSize][z * divisionSize]), z * divisionSize + zOffsetStart});
+
+					strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1)* divisionSize][z * divisionSize]), z * divisionSize + zOffsetStart});
+		
+					strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x* divisionSize][(int)((z + 0.5) * divisionSize)]), (z + 0.5) * divisionSize + zOffsetStart});
+					
+					strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1) * divisionSize][(z + 1) * divisionSize]), (z + 1) * divisionSize + zOffsetStart});
+
+					strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x * divisionSize][(z + 1) * divisionSize]), (z + 1) * divisionSize + zOffsetStart});
+				}
+			} else {
+				strips[x] = new Vertex3d[(detail + 1) * 2];
+				strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x * divisionSize][0]), 0 * divisionSize + zOffsetStart});
+
+				for (int z = 0; z < detail; z++) {
+					strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1)* divisionSize][z * divisionSize]), z * divisionSize + zOffsetStart});
+					strips[x][vertexCount++] = new Vertex3d(new double[]{x * divisionSize + xOffsetStart, (heightMap[x* divisionSize][(z + 1) * divisionSize]), (z + 1) * divisionSize + zOffsetStart});
+				}
+
+				strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1) * divisionSize][detail * divisionSize]), divisionSize * detail + zOffsetStart});
 			}
 			
-			strips[x][vertexCount++] = new Vertex3d(new double[]{(x + 1) * divisionSize + xOffsetStart, (heightMap[(x + 1) * divisionSize][detail * divisionSize]), divisionSize * detail + zOffsetStart});
+			vertexCounts[x] = vertexCount;
 		}
 	}
 	
