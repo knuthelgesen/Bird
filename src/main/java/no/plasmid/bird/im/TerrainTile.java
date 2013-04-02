@@ -17,6 +17,7 @@ public class TerrainTile {
 	private int detail = 1;
 	private int divisionSize = Configuration.TERRAIN_TILE_SIZE;
 	private TerrainTileMesh mesh;
+	private boolean recreateMeshRequested;
 	
 	/**
 	 * @param tileX X position relative to other tiles
@@ -27,6 +28,7 @@ public class TerrainTile {
 		this.tileZ = tileZ;
 		
 		readyForDrawing = false;
+		recreateMeshRequested = false;
 	}
 
 	public int getTileX() {
@@ -60,18 +62,38 @@ public class TerrainTile {
 	public void generateMesh(Terrain terrain, int divisionSize, TerrainTileMesh mesh) {
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 
-		this.detail = detail;
-		this.divisionSize = divisionSize;
+		if (this.detail != detail) {
+			//Alert nearby tiles that they need to create new mesh, so they can stitch properly
+			TerrainTile[][] tiles = terrain.getTiles();
+			if (tileX != 0) {
+				tiles[tileX - 1][tileZ].requestMeshRecreation();
+			}
+			if (tileX != Configuration.TERRAIN_SIZE - 1) {
+				tiles[tileX + 1][tileZ].requestMeshRecreation();
+			}
+			if (tileZ != 0) {
+				tiles[tileX][tileZ - 1].requestMeshRecreation();
+			}
+			if (tileZ != Configuration.TERRAIN_SIZE - 1) {
+				tiles[tileX][tileZ + 1].requestMeshRecreation();
+			}
+			
+			//Save the new detail and division size
+			this.detail = detail;
+			this.divisionSize = divisionSize;
+		}
 		
 		//Generate mesh
 		mesh.generateMeshFromHeightMap(terrain, tileX, tileZ, divisionSize);
 
 		this.mesh = mesh;
+		recreateMeshRequested = false;
 		readyForDrawing = true;
 	}
 		
 	public TerrainTileMesh dropMesh() {
 		readyForDrawing = false;
+		recreateMeshRequested = false;
 		TerrainTileMesh rc = mesh;
 		mesh = null;
 		return rc;
@@ -86,10 +108,37 @@ public class TerrainTile {
 		readyForDrawing = false;
 		TerrainTileMesh rc = this.mesh;
 		this.mesh = mesh;
-		this.detail = detail;
-		this.divisionSize = divisionSize;
+		if (this.detail != detail) {
+			//Alert nearby tiles that they need to create new mesh, so they can stitch properly
+			TerrainTile[][] tiles = terrain.getTiles();
+			if (tileX != 0) {
+				tiles[tileX - 1][tileZ].requestMeshRecreation();
+			}
+			if (tileX != Configuration.TERRAIN_SIZE - 1) {
+				tiles[tileX + 1][tileZ].requestMeshRecreation();
+			}
+			if (tileZ != 0) {
+				tiles[tileX][tileZ - 1].requestMeshRecreation();
+			}
+			if (tileZ != Configuration.TERRAIN_SIZE - 1) {
+				tiles[tileX][tileZ + 1].requestMeshRecreation();
+			}
+			
+			//Save the new detail and division size
+			this.detail = detail;
+			this.divisionSize = divisionSize;
+		}
 		readyForDrawing = true;
+		recreateMeshRequested = false;
 		return rc;
+	}
+	
+	public boolean isRecreateMeshRequested() {
+		return recreateMeshRequested;
+	}
+	
+	public void requestMeshRecreation() {
+		recreateMeshRequested = true;
 	}
 	
 }

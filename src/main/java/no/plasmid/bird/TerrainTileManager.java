@@ -84,7 +84,7 @@ public class TerrainTileManager {
 							}
 							tile.generateMesh(terrain, divisionsSize, unusedMeshes.remove(0));
 						} else {
-							if (tile.getDivisionSize() != divisionsSize) {
+							if (tile.getDivisionSize() != divisionsSize || tile.isRecreateMeshRequested()) {
 								if (unusedMeshes.size() < 10) {
 									add100UnusedMeshes();
 								}
@@ -102,7 +102,6 @@ public class TerrainTileManager {
 		 */
 		private int calculateRange(int x1, int x2, int z1, int z2) {
 			return (int)(Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1))); 
-//			return Math.abs(x2 - x1) + Math.abs(z2 - z1);
 		}
 		
 		private int nextPow2(int value) {
