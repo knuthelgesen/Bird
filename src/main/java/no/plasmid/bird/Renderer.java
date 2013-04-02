@@ -25,7 +25,7 @@ public class Renderer {
 		
 		GL11.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		
-		GL11.glCullFace(GL11.GL_FRONT);
+		GL11.glCullFace(GL11.GL_BACK);
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		
 		checkGL();
