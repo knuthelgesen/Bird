@@ -61,22 +61,23 @@ public class TerrainTileMesh {
 
 			if (stitchNegX && x == 0) {
 				//Perform stitching in the negative X direction
-				strips[x] = new Vertex3d[(detail + 1) * 5];
+				strips[x] = new Vertex3d[(detail + 1) * 6];
 				
 				for (int z = 0; z < detail; z++) {
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
-
 					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+
+					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 		
 					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 					
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
 				}
 			} else if (stitchPosX && x == detail - 1) {
 				//Perform stitching in the positive X direction
-				strips[x] = new Vertex3d[(detail + 1) * 5];
+				strips[x] = new Vertex3d[(detail + 1) * 6];
 				
 				for (int z = 0; z < detail; z++) {
 					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
@@ -88,17 +89,18 @@ public class TerrainTileMesh {
 					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 					
 					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 				}
 			} else {
 				strips[x] = new Vertex3d[(detail + 1) * 2];
-				strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, 0, xOffsetStart, zOffsetStart);
+				strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, 0, xOffsetStart, zOffsetStart);
 
 				for (int z = 0; z < detail; z++) {
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 				}
 
-				strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
+				strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
 			}
 			
 			vertexCounts[x] = vertexCount;
