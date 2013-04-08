@@ -14,6 +14,7 @@ public class App
 	
 	private InputHandler inputHandler;
 	private Renderer renderer;
+	private ShaderManager shaderManager;
 	private TerrainTileManager terrainTileManager;
 	
     public static void main( String[] args )
@@ -45,6 +46,11 @@ public class App
         renderer = new Renderer();
         renderer.initializeRenderer();
         
+        //Create the shader manager
+        shaderManager = new ShaderManager();
+        //Create shaders
+//        shaderManager.createShader(1L, "/shader/picking.vertex.shader",  "/shader/picking.fragment.shader", renderer);
+        
         //Create the terrain tile manager
         terrainTileManager = new TerrainTileManager();
     }
@@ -55,7 +61,7 @@ public class App
     private void runApplication() {
     	//Create the camera
     	Camera camera = new Camera();
-    	camera.setPosition(new Vertex3d(new double[]{0.0, 0.0, 0.0}));
+    	camera.setPosition(new Vertex3d(new double[]{-2000.0, 0.0, -2000.0}));
     	camera.setRotation(new Vertex3d(new double[]{0.0, 135.0, 0.0}));
     	
         //Create the terrain
