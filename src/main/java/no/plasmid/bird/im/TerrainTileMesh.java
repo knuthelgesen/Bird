@@ -85,13 +85,22 @@ public class TerrainTileMesh {
 						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 						
 						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
-
-
-
-						//TODO
 					} else if (stitchPosZ && z == detail - 1) {
 						//Do stitch in positive Z direction
-						//TODO
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+
+						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+
+						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+
+						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
 					} else {
 						//Do normal stitching
 						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
@@ -113,10 +122,36 @@ public class TerrainTileMesh {
 				for (int z = 0; z < detail; z++) {
 					if (stitchNegZ && z == 0) {
 						//Do stitch in negative Z direction
-						//TODO
+						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), z * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 					} else if (stitchPosZ && z == detail - 1) {
 						//Do stitch in positive Z direction
-						//TODO
+						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 					} else {
 						//Do normal stitching
 						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
