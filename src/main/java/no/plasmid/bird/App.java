@@ -49,7 +49,7 @@ public class App
         //Create the shader manager
         shaderManager = new ShaderManager();
         //Create shaders
-//        shaderManager.createShader(1L, "/shader/picking.vertex.shader",  "/shader/picking.fragment.shader", renderer);
+        shaderManager.createShader(1L, "/shader/terrain.vertex.shader",  "/shader/terrain.fragment.shader", renderer);
         
         //Create the terrain tile manager
         terrainTileManager = new TerrainTileManager();
@@ -67,11 +67,15 @@ public class App
         //Create the terrain
     	Terrain terrain = new Terrain();
     	
+    	//Start thread that updates terrain tiles
     	terrainTileManager.startTerainTileUpdateThread(terrain, camera);
+    	
+    	//Get the shader ID
+    	int glShaderId = shaderManager.getShader(1L);
     	
     	while (!inputHandler.isCloseRequested()) {
         	//Render scene
-    		renderer.render(terrainTileManager.getTileList(), terrain, camera);
+    		renderer.render(terrainTileManager.getTileList(), terrain, camera, glShaderId);
     		
     		//Handle input
     		inputHandler.handleInput();

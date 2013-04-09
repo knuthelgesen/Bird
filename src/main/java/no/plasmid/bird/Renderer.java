@@ -36,13 +36,16 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void render(List<TerrainTile> tileList, Terrain terrain, Camera camera) {
+	public void render(List<TerrainTile> tileList, Terrain terrain, Camera camera, int glShaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
 		//Prepare for 3D rendering
 		prepare3D();
 		checkGL();
+		
+		//Enable shader
+		GL20.glUseProgram(glShaderId);
 		
 		//Rotate the camera
 		double[] cameraRotValues = camera.getRotation().getValues();
@@ -80,6 +83,9 @@ public class Renderer {
 				continue;
 			}
 		}
+		
+		//Disable shader
+		GL20.glUseProgram(0);
 	}
 
 	/**
