@@ -39,20 +39,22 @@ public class App
 			e.printStackTrace(); 
 		}
         
-        //Create input handler
-        inputHandler = new InputHandler();
+        ServiceManager serviceManager = ServiceManager.getInstance();
         
-        //Create and initialize the renderer
-        renderer = new Renderer();
+        //Get input handler
+        inputHandler = serviceManager.getInputHandler();
+        
+        //Get and initialize the renderer
+        renderer = serviceManager.getRenderer();
         renderer.initializeRenderer();
         
-        //Create the shader manager
-        shaderManager = new ShaderManager();
+        //Get the shader manager
+        shaderManager = serviceManager.getShaderManager();
         //Create shaders
         shaderManager.createShader(1L, "/shader/terrain.vertex.shader",  "/shader/terrain.fragment.shader", renderer);
         
-        //Create the terrain tile manager
-        terrainTileManager = new TerrainTileManager();
+        //Get the terrain tile manager
+        terrainTileManager = serviceManager.getTerrainTileManager();
     }
     
     /**
@@ -70,12 +72,9 @@ public class App
     	//Start thread that updates terrain tiles
     	terrainTileManager.startTerainTileUpdateThread(terrain, camera);
     	
-    	//Get the shader ID
-    	int glShaderId = shaderManager.getShader(1L);
-    	
     	while (!inputHandler.isCloseRequested()) {
         	//Render scene
-    		renderer.render(terrainTileManager.getTileList(), terrain, camera, glShaderId);
+    		renderer.renderTerrain(terrainTileManager.getTileList(), terrain, camera, 1L);
     		
     		//Handle input
     		inputHandler.handleInput();

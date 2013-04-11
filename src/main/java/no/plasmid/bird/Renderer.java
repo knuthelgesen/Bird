@@ -13,10 +13,14 @@ import org.lwjgl.util.glu.GLU;
 
 public class Renderer {
 
+	private ShaderManager shaderManager;
+	
 	/**
 	 * Initialize the rendering system
 	 */
 	public void initializeRenderer() {
+		shaderManager = ServiceManager.getInstance().getShaderManager();
+
 		GL11.glViewport(0, 0, Configuration.WINDOW_WIDTH, Configuration.WINDOW_HEIGTH);
 //		GL11.glFrustum(0, Configuration.WINDOW_WIDTH, 0, Configuration.WINDOW_HEIGTH, 1, 10000);
 
@@ -36,7 +40,7 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void render(List<TerrainTile> tileList, Terrain terrain, Camera camera, int glShaderId) {
+	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -45,7 +49,7 @@ public class Renderer {
 		checkGL();
 		
 		//Enable shader
-		GL20.glUseProgram(glShaderId);
+		GL20.glUseProgram(shaderManager.getShader(shaderId));
 		
 		//Rotate the camera
 		double[] cameraRotValues = camera.getRotation().getValues();
@@ -60,6 +64,7 @@ public class Renderer {
 			try {
 				if (tile.isReadyForDrawing()) {
 					Vertex3d[][] strips = tile.getMesh().getStrips();
+					Vertex3d[][] normals = tile.getMesh().getNormals();
 					int[] vertexCounts = tile.getMesh().getVertexCounts();
 					int detail = tile.getDetail();
 					for (int tileX = 0; tileX < detail; tileX++) {
@@ -67,7 +72,8 @@ public class Renderer {
 						{
 							try {
 								for (int i = 0; i < vertexCounts[tileX]; i++) {
-										GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
+									GL11.glNormal3d(normals[tileX][i].getValues()[0], normals[tileX][i].getValues()[1], normals[tileX][i].getValues()[2]);
+									GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
 								}
 							} catch (Exception e) {
 								GL11.glEnd();
