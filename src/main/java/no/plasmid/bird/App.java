@@ -63,7 +63,7 @@ public class App
     private void runApplication() {
     	//Create the camera
     	Camera camera = new Camera();
-    	camera.setPosition(new Vertex3d(new double[]{-2000.0, 0.0, -2000.0}));
+    	camera.setPosition(new Vertex3d(new double[]{-10000.0, -1000.0, -10000.0}));
     	camera.setRotation(new Vertex3d(new double[]{0.0, 135.0, 0.0}));
     	
         //Create the terrain
