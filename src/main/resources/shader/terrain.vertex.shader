@@ -16,7 +16,10 @@ void main() {
 	//Use the ModelViewProjectionMatrix to calculate world space position
 	gl_Position = gl_ModelViewProjectionMatrix*gl_Vertex;
 	
+	//gl_Position[1] = gl_Position[1] - 0.00005 * (gl_Position[2] * gl_Position[2]); 
+	
 	//Set the color	
-	gl_FrontColor = vec4(1.0, 1.0, 1.0, 1.0);
+	gl_FrontColor = vec4(gl_Normal[1], gl_Normal[1], gl_Normal[1], 1.0);
+	//gl_FrontColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 	
