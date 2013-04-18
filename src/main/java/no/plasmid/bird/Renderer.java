@@ -27,7 +27,7 @@ public class Renderer {
 		GL11.glShadeModel(GL11.GL_FLAT);
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-//		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 		
 		GL11.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		
@@ -47,6 +47,9 @@ public class Renderer {
 		//Prepare for 3D rendering
 		prepare3D();
 		checkGL();
+		
+		//Enable depth test
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		
 		//Enable shader
 		GL20.glUseProgram(shaderManager.getShader(shaderId));
