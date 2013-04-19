@@ -24,7 +24,7 @@ public class Renderer {
 		GL11.glViewport(0, 0, Configuration.WINDOW_WIDTH, Configuration.WINDOW_HEIGTH);
 //		GL11.glFrustum(0, Configuration.WINDOW_WIDTH, 0, Configuration.WINDOW_HEIGTH, 1, 10000);
 
-		GL11.glShadeModel(GL11.GL_FLAT);
+		GL11.glShadeModel(GL11.GL_SMOOTH);
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
