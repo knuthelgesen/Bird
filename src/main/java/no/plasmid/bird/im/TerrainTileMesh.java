@@ -9,6 +9,9 @@ public class TerrainTileMesh {
 			Configuration.TERRAIN_TILE_NOISE_FREQUENCY, Configuration.TERRAIN_TILE_NOISE_AMPLITUDE,
 			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
 
+	int tileX;
+	int tileZ;
+	
 	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static Vertex3d[][] normalMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 
@@ -38,15 +41,11 @@ public class TerrainTileMesh {
 	 * @param divisionSize
 	 */
 	public void generateMeshFromHeightMap(Terrain terrain, int tileX, int tileZ, int divisionSize) {
+		this.tileX = tileX;
+		this.tileZ = tileZ;
+		
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 
-		//Find the height of the corners
-		double[][] terrainHeightMap = terrain.getHeightMap();
-		double y11 = terrainHeightMap[tileX][tileZ];
-		double y21 = terrainHeightMap[tileX + 1][tileZ];
-		double y22 = terrainHeightMap[tileX + 1][tileZ + 1];
-		double y12 = terrainHeightMap[tileX][tileZ + 1];
-		
 		//Calculate offsets
 		int xOffsetStart = tileX * Configuration.TERRAIN_TILE_SIZE;
 		int zOffsetStart = tileZ * Configuration.TERRAIN_TILE_SIZE;
@@ -81,14 +80,12 @@ public class TerrainTileMesh {
 		}
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
 			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-				heightMap[x][z] = bilinearInterpolate(y11, y12, y21, y22, x, z, heightMapDivisionSize) * 150 + noise.getHeight(xOffsetStart + x, zOffsetStart + z) * 15;
+				heightMap[x][z] = generateHeightForPoint(terrain, x + xOffsetStart, z + zOffsetStart);
 			}
 		}
-
-		//Generate normals
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
 			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-				createNormalForPoint(x, z, heightMapDivisionSize);
+				createNormalForPoint(terrain, x, z, xOffsetStart, zOffsetStart, heightMapDivisionSize);
 			}
 		}
 		
@@ -344,44 +341,36 @@ public class TerrainTileMesh {
 	 * @param x
 	 * @param z
 	 */
-	private void createNormalForPoint(int x, int z, int divisionSize) {
+	private void createNormalForPoint(Terrain terrain, int x, int z, int xOffsetStart, int zOffsetStart, int divisionSize) {
+		int worldX = x + xOffsetStart;
+		int worldZ = z + zOffsetStart;
+		
 		double y1 = heightMap[x][z];
 
-		int deltaXPos = divisionSize;
-		int deltaZPos = divisionSize;
-		
 		Vertex3d v1;
 		Vertex3d v2;
 		Vertex3d v3;
 		Vertex3d v4;
 		
-		if (x != 0) {
-			//Create normal with x - deltaXPos
-			v1 = new Vertex3d(new double[]{-deltaXPos, y1 - heightMap[x - deltaXPos][z], 0.0});
+		if (x > divisionSize / 2) {
+			v1 = new Vertex3d(new double[]{-divisionSize, y1 - heightMap[x - divisionSize][z], 0.0});
 		} else {
-			//Use placeholder value
-			v1 = new Vertex3d(new double[]{-deltaXPos, heightMap[x + deltaXPos][z] - y1, 0.0});
+			v1 = new Vertex3d(new double[]{-divisionSize, y1 - generateHeightForPoint(terrain, worldX - divisionSize, worldZ), 0.0});
 		}
-		if (x < Configuration.TERRAIN_TILE_SIZE) {
-			//Create normal with x + deltaXPos
-			v2 = new Vertex3d(new double[]{deltaXPos, y1 - heightMap[x + deltaXPos][z], 0.0});
+		if (x < Configuration.TERRAIN_TILE_SIZE - divisionSize / 2) {
+			v2 = new Vertex3d(new double[]{divisionSize, y1 - heightMap[x + divisionSize][z], 0.0});
 		} else {
-			//Use placeholder value
-			v2 = new Vertex3d(new double[]{deltaXPos, heightMap[x - deltaXPos][z] - y1, 0.0});
+			v2 = new Vertex3d(new double[]{divisionSize, y1 - generateHeightForPoint(terrain, worldX + divisionSize, worldZ), 0.0});
 		}
-		if (z != 0) {
-			//Create normal with z - deltaZPos
-			v3 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z - deltaZPos], -deltaZPos});
+		if (z > divisionSize / 2) {
+			v3 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z - divisionSize],  -divisionSize});
 		} else {
-			//Use placeholder value
-			v3 = new Vertex3d(new double[]{0.0, heightMap[x][z + deltaZPos] - y1, -deltaZPos});
+			v3 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(terrain, worldX, worldZ - divisionSize),  -divisionSize});
 		}
-		if (z < Configuration.TERRAIN_TILE_SIZE) {
-			//Create normal with z + deltaZPos
-			v4 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z + deltaZPos], deltaZPos});
+		if (z < Configuration.TERRAIN_TILE_SIZE - divisionSize / 2) {
+			v4 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z + divisionSize],  divisionSize});
 		} else {
-			//Use placeholder value
-			v4 = new Vertex3d(new double[]{0.0,heightMap[x][z - deltaZPos] - y1, deltaZPos});
+			v4 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(terrain, worldX, worldZ + divisionSize),  divisionSize});
 		}
 		
 		Vertex3d v5 = Vertex3d.crossProduct(v1, v4);
@@ -394,23 +383,14 @@ public class TerrainTileMesh {
 		normalMap[x][z].normalize();
 	}
 	
-	private double bilinearInterpolate(double q11, double q12, double q21, double q22, double x, double y, int divisionSize) {
-		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
-		double r1 = ((heightMapSize - x)/(heightMapSize - 0)) * q11 + ((x - 0)/(heightMapSize - 0)) * q21;
-		double r2 = ((heightMapSize - x)/(heightMapSize - 0)) * q12 + ((x - 0)/(heightMapSize - 0)) * q22;
-		
-		double rc = (heightMapSize - y)/(heightMapSize - 0) * r1 + (heightMapSize - y)/(heightMapSize - 0) * r2;
-		
-		double x1 = 0;
-		double x2 = Configuration.TERRAIN_TILE_SIZE ;
-		double y1 = 0;
-		double y2 = Configuration.TERRAIN_TILE_SIZE ;
-		
-		rc = ((((x2 - x) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q11)
-				+ ((((x - x1) * (y2 - y)) / ((x2 - x1) * (y2 - y1))) * q21)
-				+ ((((x2 - x) * (y - y1)) / ((x2 - x1) * (y2 - y1))) * q12)
-				+ ((((x - x1) * (y - y1)) / ((x2 - x1) * (y2 - y1))) * q22);
-		return rc;
+	/**
+	 * Generate a height value for a point using the world heightmap and the tile noise
+	 * @param x Worldspace X coordinate
+	 * @param z Worldspace Z coordinate
+	 * @return
+	 */
+	private double generateHeightForPoint(Terrain terrain, int x, int z) {
+		return terrain.getHeightAt(x, z) + noise.getHeight(x,z) * 15;
 	}
-	
+
 }
