@@ -19,6 +19,7 @@ public class ServiceManager {
 	private Renderer renderer;
 	private ShaderManager shaderManager;
 	private TerrainTileManager terrainTileManager;
+	private TextureManager textureManager;
 	
 	/**
 	 * Private constructor
@@ -28,6 +29,7 @@ public class ServiceManager {
 		renderer = new Renderer();
 		shaderManager = new ShaderManager();
 		terrainTileManager = new TerrainTileManager();
+		textureManager = new TextureManager();
 	}
 
 	public InputHandler getInputHandler() {
@@ -46,4 +48,7 @@ public class ServiceManager {
 		return terrainTileManager;
 	}
 	
+	public TextureManager getTextureManager() {
+		return textureManager;
+	}
 }
