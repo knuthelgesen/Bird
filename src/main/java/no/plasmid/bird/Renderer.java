@@ -1,25 +1,35 @@
 package no.plasmid.bird;
 
+import java.nio.IntBuffer;
 import java.util.List;
 
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
 import no.plasmid.bird.im.TerrainTile;
+import no.plasmid.bird.im.Texture3D;
 import no.plasmid.bird.im.Vertex3d;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 
 public class Renderer {
 
 	private ShaderManager shaderManager;
+	private TextureManager textureManager;
+	
+	private IntBuffer glTextureIdBuffer; // Used when making the texture IDs
 	
 	/**
 	 * Initialize the rendering system
 	 */
 	public void initializeRenderer() {
 		shaderManager = ServiceManager.getInstance().getShaderManager();
+		textureManager = ServiceManager.getInstance().getTextureManager();
+
+		glTextureIdBuffer = BufferUtils.createIntBuffer(1);
 
 		GL11.glViewport(0, 0, Configuration.WINDOW_WIDTH, Configuration.WINDOW_HEIGTH);
 //		GL11.glFrustum(0, Configuration.WINDOW_WIDTH, 0, Configuration.WINDOW_HEIGTH, 1, 10000);
@@ -40,7 +50,7 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId) {
+	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId, Long textureId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -50,7 +60,13 @@ public class Renderer {
 		
 		//Enable depth test
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+		//Enable textures - TEXTURE_3D for blending
+		GL11.glEnable(GL12.GL_TEXTURE_3D);
+		GL11.glBindTexture(GL12.GL_TEXTURE_3D, textureManager.getTexture(textureId));
 		
+//		GL11.glEnable(GL11.GL_BLEND);
+
 		//Enable shader
 		GL20.glUseProgram(shaderManager.getShader(shaderId));
 		
@@ -68,6 +84,7 @@ public class Renderer {
 				if (tile.isReadyForDrawing()) {
 					Vertex3d[][] strips = tile.getMesh().getStrips();
 					Vertex3d[][] normals = tile.getMesh().getNormals();
+					Vertex3d[][] textureCoords = tile.getMesh().getTextureCoords();
 					int[] vertexCounts = tile.getMesh().getVertexCounts();
 					int detail = tile.getDetail();
 					for (int tileX = 0; tileX < detail; tileX++) {
@@ -76,6 +93,7 @@ public class Renderer {
 							try {
 								for (int i = 0; i < vertexCounts[tileX]; i++) {
 									GL11.glNormal3d(normals[tileX][i].getValues()[0], normals[tileX][i].getValues()[1], normals[tileX][i].getValues()[2]);
+									GL11.glTexCoord3d(textureCoords[tileX][i].getValues()[0], textureCoords[tileX][i].getValues()[1], textureCoords[tileX][i].getValues()[2]);
 									GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
 								}
 							} catch (Exception e) {
@@ -117,6 +135,31 @@ public class Renderer {
 		return shader;
 	}
 	
+	public void register3DTextureWithOpenGL(Texture3D texture) {
+		//Enable texturing
+		GL11.glEnable(GL12.GL_TEXTURE_3D);
+		
+		// Generate OpenGL texture id for the new texture
+		int glTextureId = generateGlTextureId();
+
+		// Bind the new texture
+		GL11.glBindTexture(GL12.GL_TEXTURE_3D, glTextureId);
+
+		// Generate the texture in OpenGL
+		GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+		GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+		GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+		GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+		GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL12.GL_TEXTURE_WRAP_R, GL11.GL_REPEAT);
+		GL12.glTexImage3D(GL12.GL_TEXTURE_3D, 0, GL11.GL_RGBA, texture.getWidth(), texture.getHeight(),
+				texture.getDepth(), 0, texture.getPixelFormat(), GL11.GL_UNSIGNED_BYTE, texture.getImageData());
+		
+		// Set the OpenGL texture ID
+		texture.setGlTextureId(glTextureId);
+		
+		checkGL();
+	}
+
 	/**
 	 * Check for OpenGL error, and throw exception if any are found
 	 */
@@ -189,6 +232,16 @@ public class Renderer {
 		checkGL();
 		
 		return shader;
+	}
+	
+	/**
+	 * Ask OpenGL to generate room for a new texture, and return it's ID
+	 * 
+	 * @return
+	 */
+	private int generateGlTextureId() {
+		GL11.glGenTextures(glTextureIdBuffer);
+		return glTextureIdBuffer.get(0);
 	}
 	
 }
