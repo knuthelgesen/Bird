@@ -9,10 +9,6 @@ public class TerrainTile {
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
 	
-//	private static PerlinNoise noise = new PerlinNoise(Configuration.TERRAIN_TILE_NOISE_PERSISTENCE,
-//			Configuration.TERRAIN_TILE_NOISE_FREQUENCY, Configuration.TERRAIN_TILE_NOISE_AMPLITUDE,
-//			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
-//	
 	private boolean readyForDrawing;
 	private int detail = 1;
 	private int divisionSize = Configuration.TERRAIN_TILE_SIZE;
