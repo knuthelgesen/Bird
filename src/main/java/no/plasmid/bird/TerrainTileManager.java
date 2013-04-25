@@ -74,7 +74,7 @@ public class TerrainTileManager {
 							unusedMeshes.add(tile.dropMesh());
 						}
 					} else {
-						int divisionsSize = nextPow2(range * 2);
+						int divisionsSize = nextPow2(range * 3);
 						
 						divisionsSize = Math.max(1, divisionsSize);
 						divisionsSize = Math.min(Configuration.TERRAIN_TILE_SIZE, divisionsSize);

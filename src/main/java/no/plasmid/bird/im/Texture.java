@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-public class Texture3D {
+public class Texture {
 
 	public static final int GL_TEXTURE_ID_NOT_REGISTERED = 0; // OpenGL texture id used when not registered by OpenGL
 
@@ -22,12 +22,15 @@ public class Texture3D {
 	
 	private ByteBuffer imageData;
 
-	public Texture3D(int pixelFormat, int width, int height, int depth) {
+	public Texture(int pixelFormat, int width, int height, int depth) {
+		glTextureId = GL_TEXTURE_ID_NOT_REGISTERED;
+
 		this.pixelFormat = pixelFormat;
+
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-	
+
 		//Allocate space for image data
 		if (pixelFormat == GL11.GL_RGB) {
 			//No alpha
@@ -36,6 +39,7 @@ public class Texture3D {
 			//With alpha
 			this.bytesPerPixel = 4;
 		}
+		
 		imageData = BufferUtils.createByteBuffer(width * height * depth * bytesPerPixel);
 	}
 	
@@ -84,4 +88,5 @@ public class Texture3D {
 		imageData.put(data);
 		imageData.rewind();
 	}
+
 }

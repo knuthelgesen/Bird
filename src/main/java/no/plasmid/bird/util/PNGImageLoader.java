@@ -18,7 +18,7 @@ import java.util.Hashtable;
 
 import javax.swing.ImageIcon;
 
-import no.plasmid.bird.im.Texture3D;
+import no.plasmid.bird.im.Texture;
 
 import org.lwjgl.opengl.GL11;
 
@@ -30,13 +30,17 @@ public class PNGImageLoader {
 	private static final ColorModel GL_COLOR_MODEL = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] { 8, 8, 8, 0 }, false, false,
 			ComponentColorModel.OPAQUE, DataBuffer.TYPE_BYTE);
 
+	public void load2DTexture() {
+		
+	}
+	
 	/**
 	 * Load images from file into a 3D texture, in the order the filenames are given. Will not register the texture with OpenGL
 	 * @param texture
 	 * @param fileNames
 	 * @throws FileNotFoundException
 	 */
-	public void load3DTexture(Texture3D texture, String[] fileNames) throws FileNotFoundException {
+	public void loadTexture(Texture texture, String[] fileNames) throws FileNotFoundException {
 		int imageCounter = 0;
 		for (String fileName : fileNames) {
 			URL imageUrl = PNGImageLoader.class.getResource(fileName);
@@ -62,11 +66,10 @@ public class PNGImageLoader {
 			
 			//Check that the image attributes are as expected
 			texture.checkImageAttributes(imagePixelFormat, image.getWidth(), image.getHeight());
-			
+		
+			//Add image data to the texture
 			texture.addImageData(extractImageData(image), imageCounter++);
 		}
-//		texture.getImageData().rewind();
-//		texture.getImageData().flip();
 	}
 	
 	/**

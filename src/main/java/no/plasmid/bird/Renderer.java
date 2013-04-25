@@ -6,13 +6,15 @@ import java.util.List;
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
 import no.plasmid.bird.im.TerrainTile;
-import no.plasmid.bird.im.Texture3D;
+import no.plasmid.bird.im.Texture;
 import no.plasmid.bird.im.Vertex3d;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.NVMultisampleFilterHint;
 import org.lwjgl.util.glu.GLU;
 
 public class Renderer {
@@ -43,6 +45,10 @@ public class Renderer {
 		
 		GL11.glCullFace(GL11.GL_BACK);
 		GL11.glEnable(GL11.GL_CULL_FACE);
+
+		//Enable multisample anti aliasing
+		GL11.glEnable(GL13.GL_MULTISAMPLE);
+		GL11.glHint(NVMultisampleFilterHint.GL_MULTISAMPLE_FILTER_HINT_NV, GL11.GL_NICEST);
 		
 		checkGL();
 	}
@@ -50,7 +56,7 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId, Long textureId) {
+	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId, Long mainTextureId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -60,15 +66,18 @@ public class Renderer {
 		
 		//Enable depth test
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-		//Enable textures - TEXTURE_3D for blending
-		GL11.glEnable(GL12.GL_TEXTURE_3D);
-		GL11.glBindTexture(GL12.GL_TEXTURE_3D, textureManager.getTexture(textureId));
-		
-//		GL11.glEnable(GL11.GL_BLEND);
+//		GL11.glEnable(GL13.GL_MULTISAMPLE);
 
 		//Enable shader
 		GL20.glUseProgram(shaderManager.getShader(shaderId));
+		
+		//Enable textures - TEXTURE_3D for blending
+		GL11.glEnable(GL12.GL_TEXTURE_3D);
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GL11.glBindTexture(GL12.GL_TEXTURE_3D, textureManager.getTexture(mainTextureId));
+
+		int mainTextureLoc = GL20.glGetUniformLocation(shaderManager.getShader(shaderId), "mainTexture");
+		GL20.glUniform1i(mainTextureLoc, 0);
 		
 		//Rotate the camera
 		double[] cameraRotValues = camera.getRotation().getValues();
@@ -135,7 +144,7 @@ public class Renderer {
 		return shader;
 	}
 	
-	public void register3DTextureWithOpenGL(Texture3D texture) {
+	public void registerTextureWithOpenGL(Texture texture) {
 		//Enable texturing
 		GL11.glEnable(GL12.GL_TEXTURE_3D);
 		

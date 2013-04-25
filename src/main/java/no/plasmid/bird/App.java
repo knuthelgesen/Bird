@@ -8,6 +8,7 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.PixelFormat;
 
 public class App 
 {
@@ -31,9 +32,10 @@ public class App
     private void initializeApplication() {
     	//Open the program window
         try {
+        	PixelFormat pf = new PixelFormat(32, 8, 16, 0, 16);
         	Display.setDisplayMode(new DisplayMode(Configuration.WINDOW_WIDTH, Configuration.WINDOW_HEIGTH));
         	Display.setTitle(Configuration.WINDOW_TITLE);
-			Display.create();
+			Display.create(pf);
 		} catch (LWJGLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace(); 
@@ -55,7 +57,7 @@ public class App
         
         //Load textures
         TextureManager textureManager = serviceManager.getTextureManager();
-        textureManager.load3DTexture(1L, new String[]{"/img/stonea512.png", "/img/grassa512.png"});
+        textureManager.loadTexture(1L, 512, new String[]{"/img/stonea512.png", "/img/grassa512.png"});
         
         //Get the terrain tile manager
         terrainTileManager = serviceManager.getTerrainTileManager();
@@ -128,22 +130,22 @@ public class App
 			}
 		} else {
 			if (keyStatus[Keyboard.KEY_LEFT]) {
-				camera.moveCamera(400.2f, 0.0f, 0.0f);
+				camera.moveCamera(4.2f, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_RIGHT]) {
-				camera.moveCamera(-400.2f, 0.0f, 0.0f);
+				camera.moveCamera(-4.2f, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_UP]) {
-				camera.moveCamera(0.0f, 0.0f, 400.2f);
+				camera.moveCamera(0.0f, 0.0f, 4.2f);
 			}
 			if (keyStatus[Keyboard.KEY_DOWN]) {
-				camera.moveCamera(0.0f, 0.0f, -400.2f);
+				camera.moveCamera(0.0f, 0.0f, -4.2f);
 			}
 			if (keyStatus[Keyboard.KEY_PRIOR]) {
-				camera.moveCamera(0.0f, -400.2f, 0.0f);
+				camera.moveCamera(0.0f, -4.2f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_NEXT]) {
-				camera.moveCamera(0.0f, 400.2f, 0.0f);
+				camera.moveCamera(0.0f, 4.2f, 0.0f);
 			}
 		}
     }

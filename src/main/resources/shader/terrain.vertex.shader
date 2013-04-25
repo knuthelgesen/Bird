@@ -1,6 +1,5 @@
 /***********************************************************************
 Vertex shader for rendering for mouse picking.
-
 Procedure:
 
 1.Calculate final position based on camera matrix
@@ -9,7 +8,7 @@ Procedure:
 
 #version 120
 
-varying float noiseVal;
+varying vec2 pos;
 
 void main() {
 	/**************************************************
@@ -18,16 +17,15 @@ void main() {
 	//Use the ModelViewProjectionMatrix to calculate world space position
 	gl_Position = gl_ModelViewProjectionMatrix*gl_Vertex;
 	
-	//gl_Position[1] = gl_Position[1] - 0.00005 * (gl_Position[2] * gl_Position[2]); 
+	pos = gl_Vertex.xz / 64;
 	
 	//Set the color	
 	gl_FrontColor = vec4(gl_Normal[1], gl_Normal[1], gl_Normal[1], 1.0);
 	
-	//Forward texture coords
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-	noiseVal = gl_TexCoord[0].p;
+	//Forward texture coordinates for the main texture
+	gl_TexCoord[0] = gl_MultiTexCoord0 / 4;
 	gl_TexCoord[0].p = 0.75;
-	if (gl_Vertex[1] > 5000 || gl_Normal[1] < 0.7) {
+	if (gl_Vertex[1] > 5000 || gl_Normal[1] < 0.6) {
 		gl_TexCoord[0].p = 0.25;
 	}
 }
