@@ -21,7 +21,8 @@ public class Terrain {
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
 				heightMap[x][z] = Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * noise.getHeight(x, z)
-						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 30;
+						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 30
+						- 2;
 			}
 		}
 	}
@@ -52,16 +53,16 @@ public class Terrain {
 		double y21 = 0.0;
 		double y22 = 0.0;
 		double y12 = 0.0;
-		if (tileX > 0 && tileZ > 0) {
+		if (tileX > -1 && tileZ > -1) {
 			y11 = heightMap[tileX][tileZ];
 		}
-		if (tileX < Configuration.TERRAIN_SIZE && tileZ > 0) {
+		if (tileX < Configuration.TERRAIN_SIZE && tileZ > -1) {
 			y21 = heightMap[tileX + 1][tileZ];
 		}
 		if (tileX < Configuration.TERRAIN_SIZE && tileZ < Configuration.TERRAIN_SIZE) {
 			y22 = heightMap[tileX + 1][tileZ + 1];
 		}
-		if (tileX > 0 && tileZ < Configuration.TERRAIN_SIZE) {
+		if (tileX > -1 && tileZ < Configuration.TERRAIN_SIZE) {
 			y12 = heightMap[tileX][tileZ + 1];
 		}
 		
