@@ -9,8 +9,10 @@ public class TerrainTileMesh {
 			Configuration.TERRAIN_TILE_NOISE_FREQUENCY, Configuration.TERRAIN_TILE_NOISE_AMPLITUDE,
 			Configuration.TERRAIN_TILE_NOISE_OCTAVES, Configuration.TERRAIN_TILE_NOISE_RANDOM_SEED);
 
-	int tileX;
-	int tileZ;
+	private Terrain terrain;
+	
+	private int tileX;
+	private int tileZ;
 	
 	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static Vertex3d[][] normalMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
@@ -42,6 +44,8 @@ public class TerrainTileMesh {
 	 * @param divisionSize
 	 */
 	public void generateMeshFromHeightMap(Terrain terrain, int tileX, int tileZ, int divisionSize) {
+		this.terrain = terrain;
+		
 		this.tileX = tileX;
 		this.tileZ = tileZ;
 		
@@ -81,12 +85,12 @@ public class TerrainTileMesh {
 		}
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
 			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-				heightMap[x][z] = generateHeightForPoint(terrain, x + xOffsetStart, z + zOffsetStart);
+				heightMap[x][z] = generateHeightForPoint(x + xOffsetStart, z + zOffsetStart);
 			}
 		}
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
 			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-				createNormalForPoint(terrain, x, z, xOffsetStart, zOffsetStart, heightMapDivisionSize);
+				createNormalForPoint(x, z, xOffsetStart, zOffsetStart, heightMapDivisionSize);
 			}
 		}
 		
@@ -107,87 +111,47 @@ public class TerrainTileMesh {
 				for (int z = detail - 1; z > -1; z--) {
 					if (stitchNegZ && z == 0) {
 						//Do stitch in negative Z direction
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 					} else if (stitchPosZ && z == detail - 1) {
 						//Do stitch in positive Z direction
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 					} else {
 						//Do normal stitching
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);	//For correct stitching
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 					}
 				}
 			} else if (stitchPosX && x == detail - 1) {
@@ -199,95 +163,51 @@ public class TerrainTileMesh {
 				for (int z = 0; z < detail; z++) {
 					if (stitchNegZ && z == 0) {
 						//Do stitch in negative Z direction
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 					} else if (stitchPosZ && z == detail - 1) {
 						//Do stitch in positive Z direction
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 					} else {
 						//Do normal stitching
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 	
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(int)((z + 0.5) * divisionSize)]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize));
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (int)((z + 0.5) * divisionSize), xOffsetStart, zOffsetStart);
 	
-						normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, x * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 						
-						normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(z + 1) * divisionSize]);
-						textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (z + 1) * divisionSize);
-						strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
+						createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (z + 1) * divisionSize, xOffsetStart, zOffsetStart);
 					}
 				}
 			} else {
@@ -298,93 +218,55 @@ public class TerrainTileMesh {
 				//Z = 0 line
 				if (stitchNegZ) {
 					//Do stitch in negative Z direction
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][0]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, 0);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, 0, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, divisionSize, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][0]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), 0);
-					strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), 0, xOffsetStart, zOffsetStart);
-				
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, divisionSize, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][0]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, 0);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, 0, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, divisionSize, xOffsetStart, zOffsetStart);	//To set up for the main strips
+					createDataForPoint(x, vertexCount++, x * divisionSize, 0, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, x * divisionSize, divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), 0, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, 0, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, divisionSize, xOffsetStart, zOffsetStart);
 				} else {
 					//No stitching needed
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][0]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, 0, xOffsetStart, zOffsetStart);
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][0]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, 0);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, 0, xOffsetStart, zOffsetStart);
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, 0, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, x * divisionSize, 0, xOffsetStart, zOffsetStart);
 				}
-
+	
 				//Center
 				for (int z = 1; z < detail; z++) {
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][z * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, z * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][z * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, z * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
+	
+					createDataForPoint(x, vertexCount++, x * divisionSize, z * divisionSize, xOffsetStart, zOffsetStart);
 				}
-				
+	
 				//Z = detail line
 				if (stitchPosZ) {
 					//Do stitch in positive Z direction
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(detail - 1) * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);	//To find the starting point from the main strips
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(detail - 1) * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][detail * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, detail * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][(detail - 1) * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[(int)((x + 0.5) * divisionSize)][detail * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((int)((x + 0.5) * divisionSize), detail * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((int)((x + 0.5) * divisionSize), detail * divisionSize, xOffsetStart, zOffsetStart);
-
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][(detail - 1) * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, (detail - 1) * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][detail * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, detail * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, (int)((x + 0.5) * divisionSize), detail * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, x * divisionSize, (detail - 1) * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, x * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
 				} else {
 					//No stitching needed
-					normals[x][vertexCount] = new Vertex3d(normalMap[(x + 1) * divisionSize][detail * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint((x + 1) * divisionSize, detail * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint((x + 1) * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
-					
-					normals[x][vertexCount] = new Vertex3d(normalMap[x * divisionSize][detail * divisionSize]);
-					textureCoords[x][vertexCount] = createTextureCoordsForPoint(x * divisionSize, detail * divisionSize);
-					strips[x][vertexCount++] = createVertexForPoint(x * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
+					createDataForPoint(x, vertexCount++, (x + 1) * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
+		
+					createDataForPoint(x, vertexCount++, x * divisionSize, detail * divisionSize, xOffsetStart, zOffsetStart);
 				}
-			}
 			
+			}
 			vertexCounts[x] = vertexCount;
 		}
 	}
@@ -405,6 +287,12 @@ public class TerrainTileMesh {
 		return vertexCounts;
 	}
 	
+	private void createDataForPoint(int stripCount, int vertexCount, int x, int z, int xOffsetStart, int zOffsetStart) {
+		normals[stripCount][vertexCount] = new Vertex3d(normalMap[x][z]);
+		textureCoords[stripCount][vertexCount] = createTextureCoordsForPoint(x, z);
+		strips[stripCount][vertexCount++] = createVertexForPoint(x, z, xOffsetStart, zOffsetStart);
+	}
+	
 	/**
 	 * Create a vertex for a point on the map for the current tile
 	 * @param x The x position on the current tile (0 - heightmap size)
@@ -422,7 +310,7 @@ public class TerrainTileMesh {
 	 * @param x
 	 * @param z
 	 */
-	private void createNormalForPoint(Terrain terrain, int x, int z, int xOffsetStart, int zOffsetStart, int divisionSize) {
+	private void createNormalForPoint(int x, int z, int xOffsetStart, int zOffsetStart, int divisionSize) {
 		int worldX = x + xOffsetStart;
 		int worldZ = z + zOffsetStart;
 		
@@ -436,22 +324,22 @@ public class TerrainTileMesh {
 		if (x > divisionSize / 2) {
 			v1 = new Vertex3d(new double[]{-divisionSize, y1 - heightMap[x - divisionSize][z], 0.0});
 		} else {
-			v1 = new Vertex3d(new double[]{-divisionSize, y1 - generateHeightForPoint(terrain, worldX - divisionSize, worldZ), 0.0});
+			v1 = new Vertex3d(new double[]{-divisionSize, y1 - generateHeightForPoint(worldX - divisionSize, worldZ), 0.0});
 		}
 		if (x < Configuration.TERRAIN_TILE_SIZE - divisionSize / 2) {
 			v2 = new Vertex3d(new double[]{divisionSize, y1 - heightMap[x + divisionSize][z], 0.0});
 		} else {
-			v2 = new Vertex3d(new double[]{divisionSize, y1 - generateHeightForPoint(terrain, worldX + divisionSize, worldZ), 0.0});
+			v2 = new Vertex3d(new double[]{divisionSize, y1 - generateHeightForPoint(worldX + divisionSize, worldZ), 0.0});
 		}
 		if (z > divisionSize / 2) {
 			v3 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z - divisionSize],  -divisionSize});
 		} else {
-			v3 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(terrain, worldX, worldZ - divisionSize),  -divisionSize});
+			v3 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(worldX, worldZ - divisionSize),  -divisionSize});
 		}
 		if (z < Configuration.TERRAIN_TILE_SIZE - divisionSize / 2) {
 			v4 = new Vertex3d(new double[]{0.0, y1 - heightMap[x][z + divisionSize],  divisionSize});
 		} else {
-			v4 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(terrain, worldX, worldZ + divisionSize),  divisionSize});
+			v4 = new Vertex3d(new double[]{0.0, y1 - generateHeightForPoint(worldX, worldZ + divisionSize),  divisionSize});
 		}
 		
 		Vertex3d v5 = Vertex3d.crossProduct(v1, v4);
@@ -474,7 +362,7 @@ public class TerrainTileMesh {
 	 * @param z Worldspace Z coordinate
 	 * @return
 	 */
-	private double generateHeightForPoint(Terrain terrain, int x, int z) {
+	private double generateHeightForPoint(int x, int z) {
 		return terrain.getHeightAt(x, z) + noise.getHeight(x,z) * 15;
 	}
 
