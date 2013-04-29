@@ -80,7 +80,7 @@ void main() {
 	
 	texel1 = texture3D(mainTexture, gl_TexCoord[0].stp);
 
-	noiseVal = 0.875 + (1 + snoise(pos)) / 8;
+	noiseVal = 0.875 + (1 + snoise(pos)) / 32;
 
 	//Set final fragment color as calculated in vertex shader
 	gl_FragColor = gl_Color * texel1 * noiseVal;

@@ -57,7 +57,7 @@ public class App
         
         //Load textures
         TextureManager textureManager = serviceManager.getTextureManager();
-        textureManager.loadTexture(1L, 512, new String[]{"/img/stonea512.png", "/img/grassa512.png"});
+        textureManager.loadTexture(1L, 512, new String[]{"/img/sand512a.png", "/img/stonea512.png", "/img/dirt512a.png", "/img/grassa512.png"});
         
         //Get the terrain tile manager
         terrainTileManager = serviceManager.getTerrainTileManager();
@@ -130,22 +130,22 @@ public class App
 			}
 		} else {
 			if (keyStatus[Keyboard.KEY_LEFT]) {
-				camera.moveCamera(4.2f, 0.0f, 0.0f);
+				camera.moveCamera(40.2f, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_RIGHT]) {
-				camera.moveCamera(-4.2f, 0.0f, 0.0f);
+				camera.moveCamera(-40.2f, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_UP]) {
-				camera.moveCamera(0.0f, 0.0f, 4.2f);
+				camera.moveCamera(0.0f, 0.0f, 40.2f);
 			}
 			if (keyStatus[Keyboard.KEY_DOWN]) {
-				camera.moveCamera(0.0f, 0.0f, -4.2f);
+				camera.moveCamera(0.0f, 0.0f, -40.2f);
 			}
 			if (keyStatus[Keyboard.KEY_PRIOR]) {
-				camera.moveCamera(0.0f, -4.2f, 0.0f);
+				camera.moveCamera(0.0f, -40.2f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_NEXT]) {
-				camera.moveCamera(0.0f, 4.2f, 0.0f);
+				camera.moveCamera(0.0f, 40.2f, 0.0f);
 			}
 		}
     }
