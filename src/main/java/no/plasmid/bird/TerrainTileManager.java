@@ -45,6 +45,8 @@ public class TerrainTileManager {
 	
 	private class TerrainTileUpdateThread extends Thread {
 		
+		private String lock = "";
+		
 		private boolean finished = false;
 		
 		private Camera camera;
@@ -74,7 +76,7 @@ public class TerrainTileManager {
 							unusedMeshes.add(tile.dropMesh());
 						}
 					} else {
-						int divisionsSize = nextPow2(range * 3);
+						int divisionsSize = nextPow2(range * 4);
 						
 						divisionsSize = Math.max(1, divisionsSize);
 						divisionsSize = Math.min(Configuration.TERRAIN_TILE_SIZE, divisionsSize);
@@ -91,6 +93,15 @@ public class TerrainTileManager {
 								unusedMeshes.add(tile.replaceMesh(terrain, divisionsSize, unusedMeshes.remove(0)));
 							}
 						}
+					}
+				}
+				
+				synchronized (lock) {
+					try {
+						lock.wait(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 			}
