@@ -130,22 +130,22 @@ public class App
 			}
 		} else {
 			if (keyStatus[Keyboard.KEY_LEFT]) {
-				camera.moveCamera(40.2f, 0.0f, 0.0f);
+				camera.moveCamera(Configuration.CAMERA_MOVEMENT_SPEED, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_RIGHT]) {
-				camera.moveCamera(-40.2f, 0.0f, 0.0f);
+				camera.moveCamera(-Configuration.CAMERA_MOVEMENT_SPEED, 0.0f, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_UP]) {
-				camera.moveCamera(0.0f, 0.0f, 40.2f);
+				camera.moveCamera(0.0f, 0.0f, Configuration.CAMERA_MOVEMENT_SPEED);
 			}
 			if (keyStatus[Keyboard.KEY_DOWN]) {
-				camera.moveCamera(0.0f, 0.0f, -40.2f);
+				camera.moveCamera(0.0f, 0.0f, -Configuration.CAMERA_MOVEMENT_SPEED);
 			}
 			if (keyStatus[Keyboard.KEY_PRIOR]) {
-				camera.moveCamera(0.0f, -40.2f, 0.0f);
+				camera.moveCamera(0.0f, -Configuration.CAMERA_MOVEMENT_SPEED, 0.0f);
 			}
 			if (keyStatus[Keyboard.KEY_NEXT]) {
-				camera.moveCamera(0.0f, 40.2f, 0.0f);
+				camera.moveCamera(0.0f, Configuration.CAMERA_MOVEMENT_SPEED, 0.0f);
 			}
 		}
     }
