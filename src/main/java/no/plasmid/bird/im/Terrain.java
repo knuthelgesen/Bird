@@ -21,7 +21,7 @@ public class Terrain {
 				Configuration.TERRAIN_NOISE_FREQUENCY, Configuration.TERRAIN_NOISE_AMPLITUDE,
 				Configuration.TERRAIN_NOISE_OCTAVES, Configuration.TERRAIN_NOISE_RANDOM_SEED);
 		
-		//Generate terrain heightmap
+		//Generate terrain height map
 		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
 		heightMap = new double[heightMapSize][heightMapSize];
 		for (int x = 0; x < heightMapSize; x++) {
@@ -32,10 +32,36 @@ public class Terrain {
 			}
 		}
 
-		//Assign climate parameters
+		//Calculate and assign maximum height
+		double maxHeight = 0.0;
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
-				tiles[x][z].setTemperature(1.0 - (double)z / Configuration.TERRAIN_SIZE);
+				double value = heightMap[x][z];
+				int valueCount = 1;
+				if (x < Configuration.TERRAIN_SIZE - 1) {
+					value += heightMap[x + 1][z];
+					valueCount++;
+				}
+				if (z < Configuration.TERRAIN_SIZE - 1) {
+					value += heightMap[x][z + 1];
+					valueCount++;
+				}
+				if (x < Configuration.TERRAIN_SIZE - 1 && z < Configuration.TERRAIN_SIZE - 1) {
+					value += heightMap[x + 1][z + 1];
+					valueCount++;
+				}
+				tiles[x][z].setHeight(value / valueCount);
+				if (tiles[x][z].getHeight() > maxHeight) {
+					maxHeight = tiles[x][z].getHeight();
+				}
+				
+			}
+		}
+		
+		//Assign temperature
+		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
+			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
+				tiles[x][z].setTemperature(Math.max(0.0, Math.min(1.0, (1.0 - (double)z / Configuration.TERRAIN_SIZE) - Math.max(0, (tiles[x][z].getHeight() / maxHeight / 2)))));
 			}
 		}
 

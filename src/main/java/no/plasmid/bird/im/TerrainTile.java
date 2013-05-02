@@ -9,18 +9,21 @@ public class TerrainTile {
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
 	
-	private float[] idColor;
+	private double height;	//Average height of corners
 	
 	//Climate values
 	private double temperature;
 	private double moisture;
 	
+	//Mesh values
 	private boolean readyForDrawing;
 	private int detail = 1;
 	private int divisionSize = Configuration.TERRAIN_TILE_SIZE;
 	private TerrainTileMesh mesh;
 	private boolean recreateMeshRequested;
 	
+	private float[] idColor;
+
 	/**
 	 * @param tileX X position relative to other tiles
 	 * @param tileZ Z position relative to other tiles
@@ -44,10 +47,14 @@ public class TerrainTile {
 		return tileZ;
 	}
 
-	public float[] getIdColor() {
-		return idColor;
+	public double getHeight() {
+		return height;
 	}
-	
+
+	public void setHeight(double height) {
+		this.height = height;
+	}
+
 	public double getTemperature() {
 		return temperature;
 	}
@@ -164,6 +171,10 @@ public class TerrainTile {
 	
 	public void requestMeshRecreation() {
 		recreateMeshRequested = true;
+	}
+	
+	public float[] getIdColor() {
+		return idColor;
 	}
 	
 }
