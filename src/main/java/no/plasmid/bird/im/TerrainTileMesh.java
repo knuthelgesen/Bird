@@ -11,9 +11,6 @@ public class TerrainTileMesh {
 
 	private Terrain terrain;
 	
-	private int tileX;
-	private int tileZ;
-	
 	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static Vertex3d[][] normalMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 
@@ -45,9 +42,6 @@ public class TerrainTileMesh {
 	 */
 	public void generateMeshFromHeightMap(Terrain terrain, int tileX, int tileZ, int divisionSize) {
 		this.terrain = terrain;
-		
-		this.tileX = tileX;
-		this.tileZ = tileZ;
 		
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 
