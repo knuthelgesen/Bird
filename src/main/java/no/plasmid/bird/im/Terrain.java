@@ -31,6 +31,14 @@ public class Terrain {
 						- 2;
 			}
 		}
+
+		//Assign climate parameters
+		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
+			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
+				tiles[x][z].setTemperature(1.0 - (double)z / Configuration.TERRAIN_SIZE);
+			}
+		}
+
 	}
 	
 	public double[][] getHeightMap() {
