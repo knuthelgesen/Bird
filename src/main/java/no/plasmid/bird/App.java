@@ -18,6 +18,8 @@ public class App
 	private ShaderManager shaderManager;
 	private TerrainTileManager terrainTileManager;
 	
+	private RenderMode renderMode;
+	
     public static void main( String[] args )
     {
     	App app = new App();
@@ -54,6 +56,7 @@ public class App
         shaderManager = serviceManager.getShaderManager();
         //Create shaders
         shaderManager.createShader(1L, "/shader/terrain.vertex.shader",  "/shader/terrain.fragment.shader", renderer);
+        shaderManager.createShader(2L, "/shader/terrain_id_color.vertex.shader",  "/shader/terrain_id_color.fragment.shader", renderer);
         
         //Load textures
         TextureManager textureManager = serviceManager.getTextureManager();
@@ -61,6 +64,9 @@ public class App
         
         //Get the terrain tile manager
         terrainTileManager = serviceManager.getTerrainTileManager();
+        
+        //Set default render mode
+        renderMode = RenderMode.NORMAL;
     }
     
     /**
@@ -80,7 +86,22 @@ public class App
     	
     	while (!inputHandler.isCloseRequested()) {
         	//Render scene
-    		renderer.renderTerrain(terrainTileManager.getTileList(), terrain, camera, 1L, 1L);
+    		switch (renderMode) {
+    		case NORMAL:
+        		renderer.renderTerrainNormal(terrainTileManager.getTileList(), camera, 1L, 1L);
+    			break;
+    		case ID_COLOR:
+    			renderer.renderTerrainTileIdColors(terrainTileManager.getTileList(), camera, 2L);
+    			break;
+    		case TEMPERATURE:
+    			break;
+    		case MOISTURE:
+    			break;
+			default:
+				//Should not happen
+				//TODO log
+				break;
+    		}
     		
     		//Handle input
     		inputHandler.handleInput();
@@ -129,6 +150,7 @@ public class App
 //				camera.zAngle += 0.2f;
 			}
 		} else {
+			//Movement
 			if (keyStatus[Keyboard.KEY_LEFT]) {
 				camera.moveCamera(Configuration.CAMERA_MOVEMENT_SPEED, 0.0f, 0.0f);
 			}
@@ -147,6 +169,23 @@ public class App
 			if (keyStatus[Keyboard.KEY_NEXT]) {
 				camera.moveCamera(0.0f, Configuration.CAMERA_MOVEMENT_SPEED, 0.0f);
 			}
+			//Render mode select
+			if (keyStatus[Keyboard.KEY_1]) {
+				renderMode = RenderMode.NORMAL;
+			}
+			if (keyStatus[Keyboard.KEY_2]) {
+				renderMode = RenderMode.ID_COLOR;
+			}
+			if (keyStatus[Keyboard.KEY_3]) {
+				renderMode = RenderMode.TEMPERATURE;
+			}
+			if (keyStatus[Keyboard.KEY_4]) {
+				renderMode = RenderMode.MOISTURE;
+			}
 		}
+    }
+    
+    public enum RenderMode {
+    	NORMAL, ID_COLOR, TEMPERATURE, MOISTURE;
     }
 }

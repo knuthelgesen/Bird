@@ -4,7 +4,6 @@ import java.nio.IntBuffer;
 import java.util.List;
 
 import no.plasmid.bird.im.Camera;
-import no.plasmid.bird.im.Terrain;
 import no.plasmid.bird.im.TerrainTile;
 import no.plasmid.bird.im.Texture;
 import no.plasmid.bird.im.Vertex3d;
@@ -41,7 +40,7 @@ public class Renderer {
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 		
-		GL11.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		GL11.glClearColor(0.4f, 0.5f, 1.0f, 1.0f);
 		
 		GL11.glCullFace(GL11.GL_BACK);
 		GL11.glEnable(GL11.GL_CULL_FACE);
@@ -56,7 +55,7 @@ public class Renderer {
 	/**
 	 * Render the scene
 	 */
-	public void renderTerrain(List<TerrainTile> tileList, Terrain terrain, Camera camera, Long shaderId, Long mainTextureId) {
+	public void renderTerrainNormal(List<TerrainTile> tileList, Camera camera, Long shaderId, Long mainTextureId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -66,7 +65,6 @@ public class Renderer {
 		
 		//Enable depth test
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
-//		GL11.glEnable(GL13.GL_MULTISAMPLE);
 
 		//Enable shader
 		GL20.glUseProgram(shaderManager.getShader(shaderId));
@@ -76,8 +74,8 @@ public class Renderer {
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL12.GL_TEXTURE_3D, textureManager.getTexture(mainTextureId));
 
-		int mainTextureLoc = GL20.glGetUniformLocation(shaderManager.getShader(shaderId), "mainTexture");
-		GL20.glUniform1i(mainTextureLoc, 0);
+		int textureLoc = GL20.glGetUniformLocation(shaderManager.getShader(shaderId), "texture");
+		GL20.glUniform1i(textureLoc, 0);
 		
 		//Rotate the camera
 		double[] cameraRotValues = camera.getRotation().getValues();
@@ -89,6 +87,80 @@ public class Renderer {
 		GL11.glTranslated(cameraPosValues[0], cameraPosValues[1], cameraPosValues[2]);
 		
 		for (TerrainTile tile : tileList) {
+			try {
+				if (tile.isReadyForDrawing()) {
+					Vertex3d[][] strips = tile.getMesh().getStrips();
+					Vertex3d[][] normals = tile.getMesh().getNormals();
+					Vertex3d[][] textureCoords = tile.getMesh().getTextureCoords();
+					int[] vertexCounts = tile.getMesh().getVertexCounts();
+					int detail = tile.getDetail();
+					for (int tileX = 0; tileX < detail; tileX++) {
+						GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+						{
+							try {
+								for (int i = 0; i < vertexCounts[tileX]; i++) {
+									GL11.glNormal3d(normals[tileX][i].getValues()[0], normals[tileX][i].getValues()[1], normals[tileX][i].getValues()[2]);
+									GL11.glTexCoord3d(textureCoords[tileX][i].getValues()[0], textureCoords[tileX][i].getValues()[1], textureCoords[tileX][i].getValues()[2]);
+									GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
+								}
+							} catch (Exception e) {
+								GL11.glEnd();
+								e.printStackTrace();
+								continue;
+							}
+					}
+						GL11.glEnd();
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		
+		//Disable shader
+		GL20.glUseProgram(0);
+	}
+	
+	/**
+	 * Render the terrain, using no texture mapping and different colors for the tiles so the boundaries can be seen easily.
+	 * @param tileList
+	 * @param camera
+	 * @param shaderId
+	 */
+	public void renderTerrainTileIdColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+		//Clear the display
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		
+		//Prepare for 3D rendering
+		prepare3D();
+		checkGL();
+		
+		//Enable depth test
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+		//Enable shader
+		GL20.glUseProgram(shaderManager.getShader(shaderId));
+		
+		//Disable texturing
+		GL11.glDisable(GL12.GL_TEXTURE_3D);
+
+		//Get the location of the color variable
+		int tileColorLoc = GL20.glGetUniformLocation(shaderManager.getShader(shaderId), "tileColor");
+		
+		//Rotate the camera
+		double[] cameraRotValues = camera.getRotation().getValues();
+		GL11.glRotated(cameraRotValues[0], 1.0, 0.0, 0.0);
+		GL11.glRotated(cameraRotValues[1], 0.0, 1.0, 0.0);
+		GL11.glRotated(cameraRotValues[2], 0.0, 0.0, 1.0);
+		//Move the camera
+		double[] cameraPosValues = camera.getPosition().getValues();
+		GL11.glTranslated(cameraPosValues[0], cameraPosValues[1], cameraPosValues[2]);
+		
+		for (TerrainTile tile : tileList) {
+			//Set the color
+			float[] idColor = tile.getIdColor();
+			GL20.glUniform4f(tileColorLoc, idColor[0], idColor[1], idColor[2], idColor[3]);
 			try {
 				if (tile.isReadyForDrawing()) {
 					Vertex3d[][] strips = tile.getMesh().getStrips();

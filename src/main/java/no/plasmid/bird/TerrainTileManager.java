@@ -26,9 +26,7 @@ public class TerrainTileManager {
 		//Create tiles
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
-				TerrainTile tile = new TerrainTile(x, z);
-				tileList.add(tile);
-				terrain.getTiles()[x][z] = tile;
+				tileList.add(terrain.getTiles()[x][z]);
 			}
 		}
 

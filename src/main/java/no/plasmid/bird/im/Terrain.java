@@ -9,7 +9,13 @@ public class Terrain {
 	private TerrainTile[][] tiles;
 	
 	public Terrain() {
+		//Generate tiles
 		tiles = new TerrainTile[Configuration.TERRAIN_SIZE][Configuration.TERRAIN_SIZE];
+		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
+			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
+				tiles[x][z] = new TerrainTile(x, z);
+			}
+		}
 		
 		PerlinNoise noise = new PerlinNoise(Configuration.TERRAIN_NOISE_PERSISTENCE,
 				Configuration.TERRAIN_NOISE_FREQUENCY, Configuration.TERRAIN_NOISE_AMPLITUDE,

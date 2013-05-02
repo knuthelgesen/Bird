@@ -9,6 +9,12 @@ public class TerrainTile {
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
 	
+	float[] idColor;
+	
+	//Climate values
+	double temperature;
+	double moisture;
+	
 	private boolean readyForDrawing;
 	private int detail = 1;
 	private int divisionSize = Configuration.TERRAIN_TILE_SIZE;
@@ -25,6 +31,8 @@ public class TerrainTile {
 		
 		readyForDrawing = false;
 		recreateMeshRequested = false;
+		
+		idColor = new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f};
 	}
 
 	public int getTileX() {
@@ -35,6 +43,10 @@ public class TerrainTile {
 		return tileZ;
 	}
 
+	public float[] getIdColor() {
+		return idColor;
+	}
+	
 	public boolean isReadyForDrawing() {
 		return readyForDrawing;
 	}
