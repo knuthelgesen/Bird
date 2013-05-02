@@ -56,7 +56,7 @@ public class App
         shaderManager = serviceManager.getShaderManager();
         //Create shaders
         shaderManager.createShader(1L, "/shader/terrain.vertex.shader",  "/shader/terrain.fragment.shader", renderer);
-        shaderManager.createShader(2L, "/shader/terrain_id_color.vertex.shader",  "/shader/terrain_id_color.fragment.shader", renderer);
+        shaderManager.createShader(2L, "/shader/terrain_tile_color.vertex.shader",  "/shader/terrain_tile_color.fragment.shader", renderer);
         
         //Load textures
         TextureManager textureManager = serviceManager.getTextureManager();
