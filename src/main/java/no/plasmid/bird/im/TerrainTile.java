@@ -9,11 +9,11 @@ public class TerrainTile {
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
 	
-	float[] idColor;
+	private float[] idColor;
 	
 	//Climate values
-	double temperature;
-	double moisture;
+	private double temperature;
+	private double moisture;
 	
 	private boolean readyForDrawing;
 	private int detail = 1;
@@ -32,6 +32,7 @@ public class TerrainTile {
 		readyForDrawing = false;
 		recreateMeshRequested = false;
 		
+		//Create random ID color, for rendering in "clown mode"
 		idColor = new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f};
 	}
 
@@ -45,6 +46,22 @@ public class TerrainTile {
 
 	public float[] getIdColor() {
 		return idColor;
+	}
+	
+	public double getTemperature() {
+		return temperature;
+	}
+	
+	public void setTemperature(double temperature) {
+		this.temperature = temperature;
+	}
+	
+	public double getMoisture() {
+		return moisture;
+	}
+	
+	public void setMoisture(double moisture) {
+		this.moisture = moisture;
 	}
 	
 	public boolean isReadyForDrawing() {
