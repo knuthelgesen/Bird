@@ -88,12 +88,16 @@ public class App
         	//Render scene
     		switch (renderMode) {
     		case NORMAL:
+    			//Normal rendering
         		renderer.renderTerrainNormal(terrainTileManager.getTileList(), camera, 1L, 1L);
     			break;
     		case ID_COLOR:
+    			//"Clown mode"
     			renderer.renderTerrainTileIdColors(terrainTileManager.getTileList(), camera, 2L);
     			break;
     		case TEMPERATURE:
+    			//Render with color indicating the tile temperature
+    			renderer.renderTerrainTemperatureColors(terrainTileManager.getTileList(), camera, 2L);
     			break;
     		case MOISTURE:
     			break;
