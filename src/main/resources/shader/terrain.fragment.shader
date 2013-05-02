@@ -8,7 +8,7 @@ Procedure:
 
 #version 120
 
-uniform sampler3D mainTexture;
+uniform sampler3D texture;
 
 varying vec2 pos;
 
@@ -77,9 +77,9 @@ void main() {
 	vec4 texel1;
 	
 	float noiseVal;
-	
-	texel1 = texture3D(mainTexture, gl_TexCoord[0].stp);
 
+	texel1 = texture3D(texture, gl_TexCoord[0].stp);
+	
 	noiseVal = 0.875 + (1 + snoise(pos)) / 4;
 
 	//Set final fragment color as calculated in vertex shader
