@@ -100,6 +100,8 @@ public class App
     			renderer.renderTerrainTemperatureColors(terrainTileManager.getTileList(), camera, 2L);
     			break;
     		case MOISTURE:
+    			//Render with color indicating the tile moisture
+    			renderer.renderTerrainMoistureColors(terrainTileManager.getTileList(), camera, 2L);
     			break;
 			default:
 				//Should not happen
