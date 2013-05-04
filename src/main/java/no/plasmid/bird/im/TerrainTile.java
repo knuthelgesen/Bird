@@ -4,8 +4,6 @@ import no.plasmid.bird.Configuration;
 
 public class TerrainTile {
 
-	public final String SYNCH_PARAM = "Hei";
-	
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
 	
