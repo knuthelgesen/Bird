@@ -27,7 +27,7 @@ public class Terrain {
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
 				heightMap[x][z] = Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * noise.getHeight(x, z)
-						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 30
+						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 40
 						- 2;
 			}
 		}
@@ -58,13 +58,27 @@ public class Terrain {
 			}
 		}
 		
-		//Assign temperature
+		//Assign climate
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
+				//Assign temperature
 				tiles[x][z].setTemperature(Math.max(0.0, Math.min(1.0, (1.0 - (double)z / Configuration.TERRAIN_SIZE) - Math.max(0, (tiles[x][z].getHeight() / maxHeight / 2)))));
+				
+				//Assign moisture
+				if (tiles[x][z].getHeight() < 0.0) {
+					//Water. Always has moisture 1.0
+					tiles[x][z].setMoisture(1.0);
+				} else {
+					//Set moisture based on eastwards tile (x - 1)
+					double deltaMoisture = tiles[x][z].getHeight() / maxHeight;
+					tiles[x][z].setMoisture(Math.min(tiles[x - 1][z].getMoisture(), 1.0 - deltaMoisture));
+					tiles[x][z].setMoisture(Math.min(1.0, tiles[x][z].getMoisture()
+							+ tiles[x - 1][z - 1].getMoisture() / Configuration.TERRAIN_SIZE
+							+ tiles[x - 1][z + 1].getMoisture() / Configuration.TERRAIN_SIZE
+							));
+				}
 			}
 		}
-
 	}
 	
 	public double[][] getHeightMap() {
