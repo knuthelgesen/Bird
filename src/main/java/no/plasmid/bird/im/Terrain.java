@@ -16,24 +16,12 @@ public class Terrain {
 				tiles[x][z] = new TerrainTile(x, z);
 			}
 		}
-		
-		PerlinNoise noise = new PerlinNoise(Configuration.TERRAIN_NOISE_PERSISTENCE,
-				Configuration.TERRAIN_NOISE_FREQUENCY, Configuration.TERRAIN_NOISE_AMPLITUDE,
-				Configuration.TERRAIN_NOISE_OCTAVES, Configuration.TERRAIN_NOISE_RANDOM_SEED);
-		
-		//Generate terrain height map
-		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
-		heightMap = new double[heightMapSize][heightMapSize];
-		for (int x = 0; x < heightMapSize; x++) {
-			for (int z = 0; z < heightMapSize; z++) {
-				heightMap[x][z] = Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * noise.getHeight(x, z)
-						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 40
-						- 2;
-			}
-		}
 
+		//Create the height map
+		createHeightMap();
+		
 		//Calculate and assign maximum height
-		double maxHeight = 0.0;
+		double maxHeight = 1.0;
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
 				double value = heightMap[x][z];
@@ -71,11 +59,12 @@ public class Terrain {
 				} else {
 					//Set moisture based on eastwards tile (x - 1)
 					double deltaMoisture = tiles[x][z].getHeight() / maxHeight;
-					tiles[x][z].setMoisture(Math.min(tiles[x - 1][z].getMoisture(), 1.0 - deltaMoisture));
+					tiles[x][z].setMoisture(Math.min(tiles[x - 1][z].getMoisture() - (1.0 / Configuration.TERRAIN_SIZE), 1.0 - deltaMoisture));
 					tiles[x][z].setMoisture(Math.min(1.0, tiles[x][z].getMoisture()
 							+ tiles[x - 1][z - 1].getMoisture() / Configuration.TERRAIN_SIZE
 							+ tiles[x - 1][z + 1].getMoisture() / Configuration.TERRAIN_SIZE
 							));
+					tiles[x][z].setMoisture(Math.max(tiles[x][z].getMoisture(), 0.0));
 				}
 			}
 		}
@@ -121,6 +110,24 @@ public class Terrain {
 		}
 		
 		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE) * 150;
+	}
+	
+	private void createHeightMap() {
+		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
+		heightMap = new double[heightMapSize][heightMapSize];
+	
+		PerlinNoise noise = new PerlinNoise(Configuration.TERRAIN_NOISE_PERSISTENCE,
+				Configuration.TERRAIN_NOISE_FREQUENCY, Configuration.TERRAIN_NOISE_AMPLITUDE,
+				Configuration.TERRAIN_NOISE_OCTAVES, Configuration.TERRAIN_NOISE_RANDOM_SEED);
+		
+		//Generate initial terrain height map
+		for (int x = 0; x < heightMapSize; x++) {
+			for (int z = 0; z < heightMapSize; z++) {
+				heightMap[x][z] = Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * noise.getHeight(x, z)
+						+ Math.sin(((double)x / Configuration.TERRAIN_SIZE)* Math.PI) * Math.sin(((double)z / Configuration.TERRAIN_SIZE)* Math.PI) * 40
+						- 2;
+			}
+		}
 	}
 	
 	private double bilinearInterpolate(double q11, double q12, double q21, double q22, double x, double y) {
