@@ -12,7 +12,7 @@ public class Configuration {
 	
 	public static final double TERRAIN_NOISE_PERSISTENCE	= 0.42;
 	public static final double TERRAIN_NOISE_FREQUENCY	= 0.05;
-	public static final double TERRAIN_NOISE_AMPLITUDE	= 100.0;
+	public static final double TERRAIN_NOISE_AMPLITUDE	= 50.0;
 	public static final int TERRAIN_NOISE_OCTAVES			= 5;
 //	public static final int TERRAIN_NOISE_RANDOM_SEED		= (int)(System.currentTimeMillis() % 46340);
 	public static final int TERRAIN_NOISE_RANDOM_SEED		= 1;
