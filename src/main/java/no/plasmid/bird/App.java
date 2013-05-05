@@ -60,7 +60,7 @@ public class App
         
         //Load textures
         TextureManager textureManager = serviceManager.getTextureManager();
-        textureManager.loadTexture(1L, 512, new String[]{"/img/sand512a.png", "/img/stonea512.png", "/img/dirt512a.png", "/img/grassa512.png"});
+        textureManager.loadTexture(1L, 512, new String[]{"/img/sand512a.png", "/img/stonea512.png", "/img/dirt512a.png", "/img/grassd512.png"});
         
         //Get the terrain tile manager
         terrainTileManager = serviceManager.getTerrainTileManager();
@@ -102,6 +102,10 @@ public class App
     		case MOISTURE:
     			//Render with color indicating the tile moisture
     			renderer.renderTerrainMoistureColors(terrainTileManager.getTileList(), camera, 2L);
+    			break;
+    		case GRASS_COLOR:
+    			//Render with color indicating the tile grass color
+    			renderer.renderTerrainGrassColors(terrainTileManager.getTileList(), camera, 2L);
     			break;
 			default:
 				//Should not happen
@@ -188,10 +192,13 @@ public class App
 			if (keyStatus[Keyboard.KEY_4]) {
 				renderMode = RenderMode.MOISTURE;
 			}
+			if (keyStatus[Keyboard.KEY_5]) {
+				renderMode = RenderMode.GRASS_COLOR;
+			}
 		}
     }
     
     public enum RenderMode {
-    	NORMAL, ID_COLOR, TEMPERATURE, MOISTURE;
+    	NORMAL, ID_COLOR, TEMPERATURE, MOISTURE, GRASS_COLOR;
     }
 }
