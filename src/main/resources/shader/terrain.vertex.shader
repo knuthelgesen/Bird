@@ -21,6 +21,7 @@ void main() {
 	
 	//Set the color	
 	gl_FrontColor = vec4(gl_Normal[1], gl_Normal[1], gl_Normal[1], 1.0);
+	gl_FrontColor = gl_FrontColor * gl_Color;
 //	if (gl_Vertex[1] < 0) {
 //		gl_FrontColor = vec4(1.0, 0.75, 0.5, 1.0);
 //	}
