@@ -92,6 +92,7 @@ public class Renderer {
 					Vertex3d[][] strips = tile.getMesh().getStrips();
 					Vertex3d[][] normals = tile.getMesh().getNormals();
 					Vertex3d[][] textureCoords = tile.getMesh().getTextureCoords();
+					Vertex3d[][] colors = tile.getMesh().getColors();
 					int[] vertexCounts = tile.getMesh().getVertexCounts();
 					int detail = tile.getDetail();
 					for (int tileX = 0; tileX < detail; tileX++) {
@@ -101,6 +102,7 @@ public class Renderer {
 								for (int i = 0; i < vertexCounts[tileX]; i++) {
 									GL11.glNormal3d(normals[tileX][i].getValues()[0], normals[tileX][i].getValues()[1], normals[tileX][i].getValues()[2]);
 									GL11.glTexCoord3d(textureCoords[tileX][i].getValues()[0], textureCoords[tileX][i].getValues()[1], textureCoords[tileX][i].getValues()[2]);
+									GL11.glColor3d(colors[tileX][i].getValues()[0], colors[tileX][i].getValues()[1], colors[tileX][i].getValues()[2]);
 									GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
 								}
 							} catch (Exception e) {
@@ -300,6 +302,74 @@ public class Renderer {
 			//Set the color
 			float moistureColor = (float)tile.getMoisture();
 			GL20.glUniform4f(tileColorLoc, moistureColor, moistureColor, moistureColor, 1.0f);
+			try {
+				if (tile.isReadyForDrawing()) {
+					Vertex3d[][] strips = tile.getMesh().getStrips();
+					Vertex3d[][] normals = tile.getMesh().getNormals();
+					Vertex3d[][] textureCoords = tile.getMesh().getTextureCoords();
+					int[] vertexCounts = tile.getMesh().getVertexCounts();
+					int detail = tile.getDetail();
+					for (int tileX = 0; tileX < detail; tileX++) {
+						GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+						{
+							try {
+								for (int i = 0; i < vertexCounts[tileX]; i++) {
+									GL11.glNormal3d(normals[tileX][i].getValues()[0], normals[tileX][i].getValues()[1], normals[tileX][i].getValues()[2]);
+									GL11.glTexCoord3d(textureCoords[tileX][i].getValues()[0], textureCoords[tileX][i].getValues()[1], textureCoords[tileX][i].getValues()[2]);
+									GL11.glVertex3d(strips[tileX][i].getValues()[0], strips[tileX][i].getValues()[1], strips[tileX][i].getValues()[2]);
+								}
+							} catch (Exception e) {
+								GL11.glEnd();
+								e.printStackTrace();
+								continue;
+							}
+					}
+						GL11.glEnd();
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		
+		//Disable shader
+		GL20.glUseProgram(0);
+	}
+	
+	public void renderTerrainGrassColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+		//Clear the display
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		
+		//Prepare for 3D rendering
+		prepare3D();
+		checkGL();
+		
+		//Enable depth test
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+		//Enable shader
+		GL20.glUseProgram(shaderManager.getShader(shaderId));
+		
+		//Disable texturing
+		GL11.glDisable(GL12.GL_TEXTURE_3D);
+
+		//Get the location of the color variable
+		int tileColorLoc = GL20.glGetUniformLocation(shaderManager.getShader(shaderId), "tileColor");
+		
+		//Rotate the camera
+		double[] cameraRotValues = camera.getRotation().getValues();
+		GL11.glRotated(cameraRotValues[0], 1.0, 0.0, 0.0);
+		GL11.glRotated(cameraRotValues[1], 0.0, 1.0, 0.0);
+		GL11.glRotated(cameraRotValues[2], 0.0, 0.0, 1.0);
+		//Move the camera
+		double[] cameraPosValues = camera.getPosition().getValues();
+		GL11.glTranslated(cameraPosValues[0], cameraPosValues[1], cameraPosValues[2]);
+		
+		for (TerrainTile tile : tileList) {
+			//Set the color
+			float[] grassColor = tile.getGrassColor();
+			GL20.glUniform4f(tileColorLoc, grassColor[0], grassColor[1], grassColor[2], grassColor[3]);
 			try {
 				if (tile.isReadyForDrawing()) {
 					Vertex3d[][] strips = tile.getMesh().getStrips();
