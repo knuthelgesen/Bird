@@ -6,9 +6,13 @@ import no.plasmid.bird.util.PerlinNoise;
 public class Terrain {
 
 	private double[][] heightMap;
+	private double[][] temperatureMap;
+	private double[][] moistureMap;
 	private TerrainTile[][] tiles;
 	
 	public Terrain() {
+		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
+
 		//Generate tiles
 		tiles = new TerrainTile[Configuration.TERRAIN_SIZE][Configuration.TERRAIN_SIZE];
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
@@ -21,7 +25,7 @@ public class Terrain {
 		createHeightMap();
 		
 		//Calculate and assign maximum height
-		double maxHeight = 1.0;
+		double maxTileHeight = 1.0;
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
 				double value = heightMap[x][z];
@@ -39,33 +43,53 @@ public class Terrain {
 					valueCount++;
 				}
 				tiles[x][z].setHeight(value / valueCount);
-				if (tiles[x][z].getHeight() > maxHeight) {
-					maxHeight = tiles[x][z].getHeight();
+				if (tiles[x][z].getHeight() > maxTileHeight) {
+					maxTileHeight = tiles[x][z].getHeight();
 				}
 				
 			}
+		}
+		
+		//Create moisture map and temperature map
+		temperatureMap = new double[heightMapSize][heightMapSize];
+		moistureMap = new double[heightMapSize][heightMapSize];
+		for (int x = 0; x < heightMapSize; x++) {
+			for (int z = 0; z < heightMapSize; z++) {
+				//Create temperature
+				temperatureMap[x][z] = Math.max(0.0, Math.min(1.0, (1.0 - (double)z / heightMapSize) - Math.max(0, (heightMap[x][z] / maxTileHeight / 2))));
+
+				//Create moisture
+				if (heightMap[x][z] <= 0.0) {
+					//Water level or below. Moisture = 1.0
+					moistureMap[x][z] = 1.0;
+				} else {
+					//Dry land. Set moisture based on eastwards point (x - 1)
+					double deltaHeight = heightMap[x][z] - heightMap[x - 1][z];
+					if (deltaHeight > 0.0) {
+						moistureMap[x][z] = moistureMap[x - 1][z] - (deltaHeight / maxTileHeight);
+					} else {
+						moistureMap[x][z] = moistureMap[x - 1][z] - (1.0 / Configuration.TERRAIN_SIZE);
+					}
+					moistureMap[x][z] = Math.max(moistureMap[x][z], 0.0);
+					
+					if (heightMap[x - 2][z] < 0.0 || heightMap[x + 2][z] < 0.0
+							|| heightMap[x][z - 2] < 0.0 || heightMap[x][z + 2] < 0.0) {
+						moistureMap[x][z] = Math.max(0.75, moistureMap[x][z]);
+					}
+				}
+			}			
 		}
 		
 		//Assign climate
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
 				//Assign temperature
-				tiles[x][z].setTemperature(Math.max(0.0, Math.min(1.0, (1.0 - (double)z / Configuration.TERRAIN_SIZE) - Math.max(0, (tiles[x][z].getHeight() / maxHeight / 2)))));
+				tiles[x][z].setTemperature((temperatureMap[x][z] + temperatureMap[x + 1][z]
+						+ temperatureMap[x + 1][z + 1] + temperatureMap[x][z + 1]) / 4);
 				
 				//Assign moisture
-				if (tiles[x][z].getHeight() < 0.0) {
-					//Water. Always has moisture 1.0
-					tiles[x][z].setMoisture(1.0);
-				} else {
-					//Set moisture based on eastwards tile (x - 1)
-					double deltaMoisture = tiles[x][z].getHeight() / maxHeight;
-					tiles[x][z].setMoisture(Math.min(tiles[x - 1][z].getMoisture() - (1.0 / Configuration.TERRAIN_SIZE), 1.0 - deltaMoisture));
-					tiles[x][z].setMoisture(Math.min(1.0, tiles[x][z].getMoisture()
-							+ tiles[x - 1][z - 1].getMoisture() / Configuration.TERRAIN_SIZE
-							+ tiles[x - 1][z + 1].getMoisture() / Configuration.TERRAIN_SIZE
-							));
-					tiles[x][z].setMoisture(Math.max(tiles[x][z].getMoisture(), 0.0));
-				}
+				tiles[x][z].setMoisture((moistureMap[x][z] + moistureMap[x + 1][z]
+						+ moistureMap[x + 1][z + 1] + moistureMap[x][z + 1]) / 4);
 			}
 		}
 	}
@@ -91,7 +115,21 @@ public class Terrain {
 		return getHeightAt(tileX, tileZ, x, z);
 	}
 
-	public double getHeightAt(int tileX, int tileZ, int x, int z) {
+	public double getMoistureAt(int x, int z) {
+		int tileX = x / Configuration.TERRAIN_TILE_SIZE;
+		int tileZ = z / Configuration.TERRAIN_TILE_SIZE;
+
+		return getMoistureAt(tileX, tileZ, x, z);
+	}
+	
+	public double getTemperatureAt(int x, int z) {
+		int tileX = x / Configuration.TERRAIN_TILE_SIZE;
+		int tileZ = z / Configuration.TERRAIN_TILE_SIZE;
+
+		return getTemperatureAt(tileX, tileZ, x, z);
+	}
+	
+	private double getHeightAt(int tileX, int tileZ, int x, int z) {
 		double y11 = 0.0;
 		double y21 = 0.0;
 		double y22 = 0.0;
@@ -111,7 +149,49 @@ public class Terrain {
 		
 		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE) * 150;
 	}
-	
+
+	private double getMoistureAt(int tileX, int tileZ, int x, int z) {
+		double y11 = 0.0;
+		double y21 = 0.0;
+		double y22 = 0.0;
+		double y12 = 0.0;
+		if (tileX > -1 && tileZ > -1) {
+			y11 = moistureMap[tileX][tileZ];
+		}
+		if (tileX < Configuration.TERRAIN_SIZE && tileZ > -1) {
+			y21 = moistureMap[tileX + 1][tileZ];
+		}
+		if (tileX < Configuration.TERRAIN_SIZE && tileZ < Configuration.TERRAIN_SIZE) {
+			y22 = moistureMap[tileX + 1][tileZ + 1];
+		}
+		if (tileX > -1 && tileZ < Configuration.TERRAIN_SIZE) {
+			y12 = moistureMap[tileX][tileZ + 1];
+		}
+		
+		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE);
+	}
+
+	private double getTemperatureAt(int tileX, int tileZ, int x, int z) {
+		double y11 = 0.0;
+		double y21 = 0.0;
+		double y22 = 0.0;
+		double y12 = 0.0;
+		if (tileX > -1 && tileZ > -1) {
+			y11 = temperatureMap[tileX][tileZ];
+		}
+		if (tileX < Configuration.TERRAIN_SIZE && tileZ > -1) {
+			y21 = temperatureMap[tileX + 1][tileZ];
+		}
+		if (tileX < Configuration.TERRAIN_SIZE && tileZ < Configuration.TERRAIN_SIZE) {
+			y22 = temperatureMap[tileX + 1][tileZ + 1];
+		}
+		if (tileX > -1 && tileZ < Configuration.TERRAIN_SIZE) {
+			y12 = temperatureMap[tileX][tileZ + 1];
+		}
+		
+		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE);
+	}
+
 	private void createHeightMap() {
 		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
 		heightMap = new double[heightMapSize][heightMapSize];
