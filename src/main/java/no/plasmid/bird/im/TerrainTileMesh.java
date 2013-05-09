@@ -31,6 +31,7 @@ public class TerrainTileMesh {
 	private Vertex3d[][] strips;	//Triangle strips vertices
 	private Vertex3d[][] normals;	//Triangle strips normals
 	private Vertex3d[][] textureCoords;	//Texture coords strips vertices
+	private Vertex3d[][] colors;	//Colors (alpha will always be 1.0)
 	private int[] vertexCounts;
 	
 	/**
@@ -40,8 +41,12 @@ public class TerrainTileMesh {
 	 * @param tileZ
 	 * @param divisionSize
 	 */
-	public void generateMeshFromHeightMap(Terrain terrain, int tileX, int tileZ, int divisionSize) {
+	public void generateMeshFromHeightMap(Terrain terrain, TerrainTile tile) {
 		this.terrain = terrain;
+		
+		int tileX = tile.getTileX();
+		int tileZ = tile.getTileZ();
+		int divisionSize = tile.getDivisionSize();
 		
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
 
@@ -92,6 +97,7 @@ public class TerrainTileMesh {
 		strips = new Vertex3d[detail][];
 		normals = new Vertex3d[detail][];
 		textureCoords = new Vertex3d[detail][];
+		colors = new Vertex3d[detail][];
 		vertexCounts = new int[detail];
 		for (int x = 0; x < detail; x++) {
 			int vertexCount = 0;
@@ -101,6 +107,7 @@ public class TerrainTileMesh {
 				strips[x] = new Vertex3d[(detail + 1) * 7];
 				normals[x] = new Vertex3d[(detail + 1) * 7];
 				textureCoords[x] = new Vertex3d[(detail + 1) * 7];
+				colors[x] = new Vertex3d[(detail + 1) * 7];
 				
 				for (int z = detail - 1; z > -1; z--) {
 					if (stitchNegZ && z == 0) {
@@ -153,6 +160,7 @@ public class TerrainTileMesh {
 				strips[x] = new Vertex3d[(detail + 1) * 6];
 				normals[x] = new Vertex3d[(detail + 1) * 6];
 				textureCoords[x] = new Vertex3d[(detail + 1) * 6];
+				colors[x] = new Vertex3d[(detail + 1) * 6];
 				
 				for (int z = 0; z < detail; z++) {
 					if (stitchNegZ && z == 0) {
@@ -208,6 +216,7 @@ public class TerrainTileMesh {
 				strips[x] = new Vertex3d[(detail + 1) * 2 + 9];
 				normals[x] = new Vertex3d[(detail + 1) * 2 + 9];
 				textureCoords[x] = new Vertex3d[(detail + 1) * 2 + 9];
+				colors[x] = new Vertex3d[(detail + 1) * 2 + 9];
 
 				//Z = 0 line
 				if (stitchNegZ) {
@@ -277,14 +286,44 @@ public class TerrainTileMesh {
 		return textureCoords;
 	}
 	
+	public Vertex3d[][] getColors() {
+		return colors;
+	}
+	
 	public int[] getVertexCounts() {
 		return vertexCounts;
 	}
 	
 	private void createDataForPoint(int stripCount, int vertexCount, int x, int z, int xOffsetStart, int zOffsetStart) {
+		Vertex3d vertex = createVertexForPoint(x, z, xOffsetStart, zOffsetStart);
+		double temperature = terrain.getTemperatureAt(x + xOffsetStart, z + zOffsetStart);
+		double moisture = terrain.getMoistureAt(x + xOffsetStart, z + zOffsetStart);
+		//Get the normal
 		normals[stripCount][vertexCount] = new Vertex3d(normalMap[x][z]);
-		textureCoords[stripCount][vertexCount] = createTextureCoordsForPoint(x, z);
-		strips[stripCount][vertexCount++] = createVertexForPoint(x, z, xOffsetStart, zOffsetStart);
+		
+		//Calculate which texture and color to use
+		double textureP = 0.875;	//Set initially to grass
+//		colors[stripCount][vertexCount] = new Vertex3d(new double[]{tile.getGrassColor()[0], tile.getGrassColor()[1], tile.getGrassColor()[2]});
+		colors[stripCount][vertexCount] = calculateGrassColors(temperature, moisture);
+		if (normals[stripCount][vertexCount].values[1] < 0.78) {
+			//Steep enough to be dirt
+//			textureP = 0.625;
+//			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.5, 0.25, 0.0});
+		}
+		if (vertex.values[1] < 5) {
+			//Steep enough to be sand
+			textureP = 0.125;
+			colors[stripCount][vertexCount] = new Vertex3d(new double[]{1.0, 1.0, 1.0});
+		}
+		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.75) {
+			//Steep enough to be rock
+			textureP = 0.375;
+			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.75, 0.75, 0.75});
+		}
+		textureCoords[stripCount][vertexCount] = createTextureCoordsForPoint(x, z, textureP);
+		
+		//Generate the vertex
+		strips[stripCount][vertexCount++] = vertex;
 	}
 	
 	/**
@@ -346,8 +385,8 @@ public class TerrainTileMesh {
 		normalMap[x][z].normalize();
 	}
 	
-	private Vertex3d createTextureCoordsForPoint(int x, int z) {
-		return new Vertex3d(new double[]{x, z, 1.0});
+	private Vertex3d createTextureCoordsForPoint(int x, int z, double p) {
+		return new Vertex3d(new double[]{x, z, p});
 	}
 	
 	/**
@@ -359,5 +398,23 @@ public class TerrainTileMesh {
 	private double generateHeightForPoint(int x, int z) {
 		return terrain.getHeightAt(x, z) + noise.getHeight(x,z) * 15;
 	}
+	
+	private Vertex3d calculateGrassColors(double temperature, double moisture) {
+		//Create color based on moisture
+		float[] moistureColors = new float[3];
+		moistureColors[0] = (float)(1.0 * (1.0 - moisture));
+		moistureColors[1] = (float)Math.min(1.0f, 1.7 - moisture);
+		moistureColors[2] = 0.5f;
+
+		//Create color based on temperature
+		float[] temperatureColors = new float[3];
+		temperatureColors[0] = 0.5f;
+		temperatureColors[1] = (float)Math.min(1.0f, 1.7 - temperature);
+		temperatureColors[2] = (float)((1.0 * (1.0 - temperature)) / 2);
+		
+		//Combine colors
+		return new Vertex3d(new double[]{moistureColors[0], (moistureColors[1] + temperatureColors[1]) / 2, temperatureColors[2]});
+	}
+
 
 }

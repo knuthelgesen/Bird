@@ -22,21 +22,8 @@ void main() {
 	//Set the color	
 	gl_FrontColor = vec4(gl_Normal[1], gl_Normal[1], gl_Normal[1], 1.0);
 	gl_FrontColor = gl_FrontColor * gl_Color;
-//	if (gl_Vertex[1] < 0) {
-//		gl_FrontColor = vec4(1.0, 0.75, 0.5, 1.0);
-//	}
 	
 	//Forward texture coordinates for the main texture
-	gl_TexCoord[0] = gl_MultiTexCoord0 / 4;
-	gl_TexCoord[0].p = 0.875;
-	if (gl_Normal[1] < 0.80) {
-		gl_TexCoord[0].p = 0.625;
-	}
-	if (gl_Vertex[1] < 5 ) {
-		gl_TexCoord[0].p = 0.125;
-	}
-	if (gl_Vertex[1] > 5000 || gl_Normal[1] < 0.75) {
-		gl_TexCoord[0].p = 0.375;
-	}
+	gl_TexCoord[0].st = gl_MultiTexCoord0.st / 4;
 }
 	
