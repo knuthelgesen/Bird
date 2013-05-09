@@ -305,17 +305,12 @@ public class TerrainTileMesh {
 		double textureP = 0.875;	//Set initially to grass
 //		colors[stripCount][vertexCount] = new Vertex3d(new double[]{tile.getGrassColor()[0], tile.getGrassColor()[1], tile.getGrassColor()[2]});
 		colors[stripCount][vertexCount] = calculateGrassColors(temperature, moisture);
-		if (normals[stripCount][vertexCount].values[1] < 0.78) {
-			//Steep enough to be dirt
-//			textureP = 0.625;
-//			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.5, 0.25, 0.0});
-		}
 		if (vertex.values[1] < 5) {
 			//Steep enough to be sand
 			textureP = 0.125;
 			colors[stripCount][vertexCount] = new Vertex3d(new double[]{1.0, 1.0, 1.0});
 		}
-		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.75) {
+		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.8) {
 			//Steep enough to be rock
 			textureP = 0.375;
 			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.75, 0.75, 0.75});
