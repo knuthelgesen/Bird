@@ -66,9 +66,9 @@ public class Terrain {
 					//Dry land. Set moisture based on eastwards point (x - 1)
 					double deltaHeight = heightMap[x][z] - heightMap[x - 1][z];
 					if (deltaHeight > 0.0) {
-						moistureMap[x][z] = moistureMap[x - 1][z] - (deltaHeight / maxTileHeight);
+						moistureMap[x][z] = ((moistureMap[x - 1][z - 1] + moistureMap[x - 1][z] + moistureMap[x - 1][z + 1]) / 3) - (deltaHeight / maxTileHeight);
 					} else {
-						moistureMap[x][z] = moistureMap[x - 1][z] - (1.0 / Configuration.TERRAIN_SIZE);
+						moistureMap[x][z] = ((moistureMap[x - 1][z - 1] + moistureMap[x - 1][z] + moistureMap[x - 1][z + 1]) / 3) - (0.7 / Configuration.TERRAIN_SIZE);
 					}
 					moistureMap[x][z] = Math.max(moistureMap[x][z], 0.0);
 					
