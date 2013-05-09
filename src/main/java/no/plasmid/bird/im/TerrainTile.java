@@ -20,7 +20,9 @@ public class TerrainTile {
 	private TerrainTileMesh mesh;
 	private boolean recreateMeshRequested;
 	
+	//Colors used for different rendering modes
 	private float[] idColor;
+	private float[] grassColor;
 
 	/**
 	 * @param tileX X position relative to other tiles
@@ -35,6 +37,7 @@ public class TerrainTile {
 		
 		//Create random ID color, for rendering in "clown mode"
 		idColor = new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f};
+		grassColor = new float[]{1.0f, 0.0f, 0.0f, 1.0f};	//Set to red so it's easy to see if something is wrong
 	}
 
 	public int getTileX() {
@@ -59,6 +62,7 @@ public class TerrainTile {
 	
 	public void setTemperature(double temperature) {
 		this.temperature = temperature;
+		calculateGrassColors();
 	}
 	
 	public double getMoisture() {
@@ -67,6 +71,7 @@ public class TerrainTile {
 	
 	public void setMoisture(double moisture) {
 		this.moisture = moisture;
+		calculateGrassColors();
 	}
 	
 	public boolean isReadyForDrawing() {
@@ -114,7 +119,7 @@ public class TerrainTile {
 		}
 		
 		//Generate mesh
-		mesh.generateMeshFromHeightMap(terrain, tileX, tileZ, divisionSize);
+		mesh.generateMeshFromHeightMap(terrain, this);
 
 		this.mesh = mesh;
 		recreateMeshRequested = false;
@@ -131,9 +136,10 @@ public class TerrainTile {
 	
 	public TerrainTileMesh replaceMesh(Terrain terrain, int divisionSize, TerrainTileMesh mesh) {
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		this.divisionSize = divisionSize;
 
 		//Generate mesh
-		mesh.generateMeshFromHeightMap(terrain, tileX, tileZ, divisionSize);
+		mesh.generateMeshFromHeightMap(terrain, this);
 
 		readyForDrawing = false;
 		TerrainTileMesh rc = this.mesh;
@@ -156,7 +162,6 @@ public class TerrainTile {
 			
 			//Save the new detail and division size
 			this.detail = detail;
-			this.divisionSize = divisionSize;
 		}
 		readyForDrawing = true;
 		recreateMeshRequested = false;
@@ -175,4 +180,26 @@ public class TerrainTile {
 		return idColor;
 	}
 	
+	public float[] getGrassColor() {
+		return grassColor;
+	}
+	
+	private void calculateGrassColors() {
+		//Create color based on moisture
+		float[] moistureColors = new float[3];
+		moistureColors[0] = (float)(1.0 * (1.0 - moisture));
+		moistureColors[1] = (float)Math.min(1.0f, 1.7 - moisture);
+		moistureColors[2] = 0.5f;
+
+		//Create color based on temperature
+		float[] temperatureColors = new float[3];
+		temperatureColors[0] = 0.5f;
+		temperatureColors[1] = (float)Math.min(1.0f, 1.7 - temperature);
+		temperatureColors[2] = (float)((1.0 * (1.0 - temperature)) / 2);
+		
+		//Combine colors
+		grassColor[0] = moistureColors[0];
+		grassColor[1] = (moistureColors[1] + temperatureColors[1]) / 2;
+		grassColor[2] = temperatureColors[2];
+	}
 }
