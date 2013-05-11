@@ -303,7 +303,6 @@ public class TerrainTileMesh {
 		
 		//Calculate which texture and color to use
 		double textureP = 0.875;	//Set initially to grass
-//		colors[stripCount][vertexCount] = new Vertex3d(new double[]{tile.getGrassColor()[0], tile.getGrassColor()[1], tile.getGrassColor()[2]});
 		colors[stripCount][vertexCount] = calculateGrassColors(temperature, moisture);
 		if (vertex.values[1] < 5) {
 			//Steep enough to be sand
@@ -391,7 +390,7 @@ public class TerrainTileMesh {
 	 * @return
 	 */
 	private double generateHeightForPoint(int x, int z) {
-		return terrain.getHeightAt(x, z) + noise.getHeight(x,z) * 15;
+		return terrain.getHeightAt(x, z) + noise.getHeight(x,z);
 	}
 	
 	private Vertex3d calculateGrassColors(double temperature, double moisture) {
