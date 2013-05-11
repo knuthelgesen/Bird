@@ -13,6 +13,8 @@ public class TerrainTileMesh {
 	
 	private static double[][] heightMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static Vertex3d[][] normalMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+	private static double[][] moistureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+	private static double[][] temperatureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 
 	static {
 		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
@@ -49,11 +51,24 @@ public class TerrainTileMesh {
 		int divisionSize = tile.getDivisionSize();
 		
 		int detail = Configuration.TERRAIN_TILE_SIZE / divisionSize;
+		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
 
 		//Calculate offsets
 		int xOffsetStart = tileX * Configuration.TERRAIN_TILE_SIZE;
 		int zOffsetStart = tileZ * Configuration.TERRAIN_TILE_SIZE;
 
+		//Generate height map
+		double[][] terrainHeightMap = terrain.getHeightMap();
+		interpolateTileMap(terrainHeightMap[tileX][tileZ], terrainHeightMap[tileX + 1][tileZ], terrainHeightMap[tileX][tileZ + 1], terrainHeightMap[tileX + 1][tileZ + 1], heightMap, 150);
+
+		//Generate temperature map
+		double[][] terrainTemperatureMap = terrain.getTemperatureMap();
+		interpolateTileMap(terrainTemperatureMap[tileX][tileZ], terrainTemperatureMap[tileX + 1][tileZ], terrainTemperatureMap[tileX][tileZ + 1], terrainTemperatureMap[tileX + 1][tileZ + 1], temperatureMap, 1);
+		
+		//Generate moisture map
+		double[][] terrainMoistureMap = terrain.getMoistureMap();
+		interpolateTileMap(terrainMoistureMap[tileX][tileZ], terrainMoistureMap[tileX + 1][tileZ], terrainMoistureMap[tileX][tileZ + 1], terrainMoistureMap[tileX + 1][tileZ + 1], moistureMap, 1);
+		
 		TerrainTile[][] tiles = terrain.getTiles();
 		if (tileX > 0 && tiles[tileX - 1][tileZ] != null && tiles[tileX - 1][tileZ].isReadyForDrawing() && tiles[tileX - 1][tileZ].getDivisionSize() < divisionSize) {
 			stitchNegX = true;
@@ -76,15 +91,15 @@ public class TerrainTileMesh {
 			stitchPosZ = false;
 		}
 
-		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
 		int heightMapDivisionSize = divisionSize / 2;
-		//Generate heightmap
+		
 		if (divisionSize == 1) {
 			heightMapDivisionSize = 1;
 		}
-		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
-			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-				heightMap[x][z] = generateHeightForPoint(x + xOffsetStart, z + zOffsetStart);
+		for (int x = 0; x < heightMapSize; x += 1) {
+			for (int z = 0; z < heightMapSize; z += 1) {
+//				heightMap[x][z] = generateHeightForPoint(x + xOffsetStart, z + zOffsetStart);
+//				heightMap[x][z] += noise.getHeight(x + xOffsetStart,z + zOffsetStart);
 			}
 		}
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
@@ -296,8 +311,8 @@ public class TerrainTileMesh {
 	
 	private void createDataForPoint(int stripCount, int vertexCount, int x, int z, int xOffsetStart, int zOffsetStart) {
 		Vertex3d vertex = createVertexForPoint(x, z, xOffsetStart, zOffsetStart);
-		double temperature = terrain.getTemperatureAt(x + xOffsetStart, z + zOffsetStart);
-		double moisture = terrain.getMoistureAt(x + xOffsetStart, z + zOffsetStart);
+		double temperature = temperatureMap[x][z];
+		double moisture = moistureMap[x][z];
 		//Get the normal
 		normals[stripCount][vertexCount] = new Vertex3d(normalMap[x][z]);
 		
@@ -390,7 +405,45 @@ public class TerrainTileMesh {
 	 * @return
 	 */
 	private double generateHeightForPoint(int x, int z) {
-		return terrain.getHeightAt(x, z) + noise.getHeight(x,z);
+//		return terrain.getHeightAt(x, z) + noise.getHeight(x,z);
+		return terrain.getHeightAt(x, z);
+	}
+	
+	/**
+	 * Will interpolate four values over a 2D map
+	 * @param v00 Corner value at 0, 0
+	 * @param v10 Corner value at 0, 0
+	 * @param v01 Corner value at 0, 0
+	 * @param v11 Corner value at 0, 0
+	 * @param target Where to store the calculated values
+	 * @param factor Value factor
+	 */
+	private void interpolateTileMap(double v00, double v10, double v01, double v11, double[][] target, int factor) {
+		int tileMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
+		//Start values for the lines at z = 0 and z = TERRAIN_TILE_SIZE
+		double z0 = v00;
+		double z1 = v01;
+		
+		//Delta values for the  lines at z = 0 and z = TERRAIN_TILE_SIZE
+		double dz0 = (v10 - v00) / Configuration.TERRAIN_TILE_SIZE;
+		double dz1 = (v11 - v01) / Configuration.TERRAIN_TILE_SIZE;
+		
+		for (int x = 0; x < tileMapSize; x++) {
+			//Calculate the values along the z = 0 and z = TERRAIN_TILE_SIZE lines
+			target[x][0] = z0 * factor;
+			target[x][Configuration.TERRAIN_TILE_SIZE] = z1 * factor;
+			
+			//Delta value along the z line
+			double v = z0;
+			double dv = (z1 - z0) / (Configuration.TERRAIN_TILE_SIZE - 1);
+			//Fill inn the middle (the line between z = 1 and z = TERRAIN_TILE_SIZE - 1
+			for (int z = 1; z < Configuration.TERRAIN_TILE_SIZE; z++) {
+				target[x][z] = v * factor;
+				v = v + dv;
+			}
+			z0 = z0 + dz0;
+			z1 = z1 + dz1;
+		}
 	}
 	
 	private Vertex3d calculateGrassColors(double temperature, double moisture) {

@@ -98,6 +98,14 @@ public class Terrain {
 		return heightMap;
 	}
 	
+	public double[][] getTemperatureMap() {
+		return temperatureMap;
+	}
+	
+	public double[][] getMoistureMap() {
+		return moistureMap;
+	}
+	
 	public TerrainTile[][] getTiles() {
 		return tiles;
 	}
@@ -115,20 +123,6 @@ public class Terrain {
 		return getHeightAt(tileX, tileZ, x, z);
 	}
 
-	public double getMoistureAt(int x, int z) {
-		int tileX = x / Configuration.TERRAIN_TILE_SIZE;
-		int tileZ = z / Configuration.TERRAIN_TILE_SIZE;
-
-		return getMoistureAt(tileX, tileZ, x, z);
-	}
-	
-	public double getTemperatureAt(int x, int z) {
-		int tileX = x / Configuration.TERRAIN_TILE_SIZE;
-		int tileZ = z / Configuration.TERRAIN_TILE_SIZE;
-
-		return getTemperatureAt(tileX, tileZ, x, z);
-	}
-	
 	private double getHeightAt(int tileX, int tileZ, int x, int z) {
 		double y11 = 0.0;
 		double y21 = 0.0;
@@ -148,48 +142,6 @@ public class Terrain {
 		}
 		
 		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE) * 150;
-	}
-
-	private double getMoistureAt(int tileX, int tileZ, int x, int z) {
-		double y11 = 0.0;
-		double y21 = 0.0;
-		double y22 = 0.0;
-		double y12 = 0.0;
-		if (tileX > -1 && tileZ > -1) {
-			y11 = moistureMap[tileX][tileZ];
-		}
-		if (tileX < Configuration.TERRAIN_SIZE && tileZ > -1) {
-			y21 = moistureMap[tileX + 1][tileZ];
-		}
-		if (tileX < Configuration.TERRAIN_SIZE && tileZ < Configuration.TERRAIN_SIZE) {
-			y22 = moistureMap[tileX + 1][tileZ + 1];
-		}
-		if (tileX > -1 && tileZ < Configuration.TERRAIN_SIZE) {
-			y12 = moistureMap[tileX][tileZ + 1];
-		}
-		
-		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE);
-	}
-
-	private double getTemperatureAt(int tileX, int tileZ, int x, int z) {
-		double y11 = 0.0;
-		double y21 = 0.0;
-		double y22 = 0.0;
-		double y12 = 0.0;
-		if (tileX > -1 && tileZ > -1) {
-			y11 = temperatureMap[tileX][tileZ];
-		}
-		if (tileX < Configuration.TERRAIN_SIZE && tileZ > -1) {
-			y21 = temperatureMap[tileX + 1][tileZ];
-		}
-		if (tileX < Configuration.TERRAIN_SIZE && tileZ < Configuration.TERRAIN_SIZE) {
-			y22 = temperatureMap[tileX + 1][tileZ + 1];
-		}
-		if (tileX > -1 && tileZ < Configuration.TERRAIN_SIZE) {
-			y12 = temperatureMap[tileX][tileZ + 1];
-		}
-		
-		return bilinearInterpolate(y11, y12, y21, y22, x % Configuration.TERRAIN_TILE_SIZE, z % Configuration.TERRAIN_TILE_SIZE);
 	}
 
 	private void createHeightMap() {
