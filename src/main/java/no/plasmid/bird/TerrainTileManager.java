@@ -2,6 +2,8 @@ package no.plasmid.bird;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.Terrain;
@@ -12,21 +14,25 @@ public class TerrainTileManager {
 
 	private TerrainTileUpdateThread terrainTileUpdateThread;
 	
-	private List<TerrainTile> tileList;
-
+	private SortedSet<TerrainTile> tileSet;
+	
 	public TerrainTileManager() {
-		tileList = new LinkedList<TerrainTile>();
+		tileSet = new TreeSet<TerrainTile>();
 	}
 
-	public List<TerrainTile> getTileList() {
-		return tileList;
+	public SortedSet<TerrainTile> getTileSet() {
+		return tileSet;
 	}
 	
 	public void startTerainTileUpdateThread(Terrain terrain, Camera camera) {
-		//Create tiles
+		int cameraTileX = (int)-camera.getPosition().getValues()[0] / Configuration.TERRAIN_TILE_SIZE;
+		int cameraTileZ = (int)-camera.getPosition().getValues()[2] / Configuration.TERRAIN_TILE_SIZE;
+
+		//Insert tiles into the set
 		for (int x = 0; x < Configuration.TERRAIN_SIZE; x++) {
 			for (int z = 0; z < Configuration.TERRAIN_SIZE; z++) {
-				tileList.add(terrain.getTiles()[x][z]);
+				terrain.getTiles()[x][z].setRangeToCamera(calculateRange(cameraTileX, x, cameraTileZ, z));
+				tileSet.add(terrain.getTiles()[x][z]);
 			}
 		}
 
@@ -39,6 +45,14 @@ public class TerrainTileManager {
 		if (terrainTileUpdateThread != null) {
 			terrainTileUpdateThread.setFinished();
 		}
+	}
+	
+	/**
+	 * Calculates range in "Manhattan units"
+	 * @return
+	 */
+	private int calculateRange(int x1, int x2, int z1, int z2) {
+		return (int)(Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1))); 
 	}
 	
 	private class TerrainTileUpdateThread extends Thread {
@@ -67,8 +81,9 @@ public class TerrainTileManager {
 			while (!finished) {
 				int cameraTileX = (int)-camera.getPosition().getValues()[0] / Configuration.TERRAIN_TILE_SIZE;
 				int cameraTileZ = (int)-camera.getPosition().getValues()[2] / Configuration.TERRAIN_TILE_SIZE;
-				for (TerrainTile tile : tileList) {
+				for (TerrainTile tile : tileSet) {
 					int range = calculateRange(cameraTileX, tile.getTileX(), cameraTileZ, tile.getTileZ());
+					tile.setRangeToCamera(range);
 					if (range > 150) {
 						if (tile.isReadyForDrawing()) {
 							unusedMeshes.add(tile.dropMesh());
@@ -103,14 +118,6 @@ public class TerrainTileManager {
 					}
 				}
 			}
-		}
-		
-		/**
-		 * Calculates range in "Manhattan units"
-		 * @return
-		 */
-		private int calculateRange(int x1, int x2, int z1, int z2) {
-			return (int)(Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1))); 
 		}
 		
 		private int nextPow2(int value) {

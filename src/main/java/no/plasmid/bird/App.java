@@ -89,23 +89,23 @@ public class App
     		switch (renderMode) {
     		case NORMAL:
     			//Normal rendering
-        		renderer.renderTerrainNormal(terrainTileManager.getTileList(), camera, 1L, 1L);
+        		renderer.renderTerrainNormal(terrainTileManager.getTileSet(), camera, 1L, 1L);
     			break;
     		case ID_COLOR:
     			//"Clown mode"
-    			renderer.renderTerrainTileIdColors(terrainTileManager.getTileList(), camera, 2L);
+    			renderer.renderTerrainTileIdColors(terrainTileManager.getTileSet(), camera, 2L);
     			break;
     		case TEMPERATURE:
     			//Render with color indicating the tile temperature
-    			renderer.renderTerrainTemperatureColors(terrainTileManager.getTileList(), camera, 2L);
+    			renderer.renderTerrainTemperatureColors(terrainTileManager.getTileSet(), camera, 2L);
     			break;
     		case MOISTURE:
     			//Render with color indicating the tile moisture
-    			renderer.renderTerrainMoistureColors(terrainTileManager.getTileList(), camera, 2L);
+    			renderer.renderTerrainMoistureColors(terrainTileManager.getTileSet(), camera, 2L);
     			break;
     		case GRASS_COLOR:
     			//Render with color indicating the tile grass color
-    			renderer.renderTerrainGrassColors(terrainTileManager.getTileList(), camera, 2L);
+    			renderer.renderTerrainGrassColors(terrainTileManager.getTileSet(), camera, 2L);
     			break;
 			default:
 				//Should not happen

@@ -1,7 +1,7 @@
 package no.plasmid.bird;
 
 import java.nio.IntBuffer;
-import java.util.List;
+import java.util.Set;
 
 import no.plasmid.bird.im.Camera;
 import no.plasmid.bird.im.TerrainTile;
@@ -55,7 +55,7 @@ public class Renderer {
 	/**
 	 * Render the terrain normally
 	 */
-	public void renderTerrainNormal(List<TerrainTile> tileList, Camera camera, Long shaderId, Long mainTextureId) {
+	public void renderTerrainNormal(Set<TerrainTile> tileList, Camera camera, Long shaderId, Long mainTextureId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -133,7 +133,7 @@ public class Renderer {
 	 * @param camera
 	 * @param shaderId
 	 */
-	public void renderTerrainTileIdColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+	public void renderTerrainTileIdColors(Set<TerrainTile> tileList, Camera camera, Long shaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -201,7 +201,7 @@ public class Renderer {
 		GL20.glUseProgram(0);
 	}
 
-	public void renderTerrainTemperatureColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+	public void renderTerrainTemperatureColors(Set<TerrainTile> tileList, Camera camera, Long shaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -269,7 +269,7 @@ public class Renderer {
 		GL20.glUseProgram(0);
 	}
 	
-	public void renderTerrainMoistureColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+	public void renderTerrainMoistureColors(Set<TerrainTile> tileList, Camera camera, Long shaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		
@@ -337,7 +337,7 @@ public class Renderer {
 		GL20.glUseProgram(0);
 	}
 	
-	public void renderTerrainGrassColors(List<TerrainTile> tileList, Camera camera, Long shaderId) {
+	public void renderTerrainGrassColors(Set<TerrainTile> tileList, Camera camera, Long shaderId) {
 		//Clear the display
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		

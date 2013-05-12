@@ -2,7 +2,7 @@ package no.plasmid.bird.im;
 
 import no.plasmid.bird.Configuration;
 
-public class TerrainTile {
+public class TerrainTile implements Comparable<TerrainTile> {
 
 	private int tileX;	//Relative to other tiles on the whole terrain
 	private int tileZ;	//Relative to other tiles on the whole terrain
@@ -23,6 +23,9 @@ public class TerrainTile {
 	//Colors used for different rendering modes
 	private float[] idColor;
 	private float[] grassColor;
+	
+	//Used for sorting
+	private int rangeToCamera;
 
 	/**
 	 * @param tileX X position relative to other tiles
@@ -184,6 +187,24 @@ public class TerrainTile {
 		return grassColor;
 	}
 	
+	public int getRangeToCamera() {
+		return rangeToCamera;
+	}
+
+	public void setRangeToCamera(int rangeToCamera) {
+		this.rangeToCamera = rangeToCamera;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof TerrainTile) {
+			TerrainTile ot = (TerrainTile)o;
+			return (tileX == ot.getTileX()) && (tileZ == ot.getTileZ());
+		} else {
+			return false;
+		}
+	}
+	
 	private void calculateGrassColors() {
 		//Create color based on moisture
 		float[] moistureColors = new float[3];
@@ -201,5 +222,14 @@ public class TerrainTile {
 		grassColor[0] = moistureColors[0];
 		grassColor[1] = (moistureColors[1] + temperatureColors[1]) / 2;
 		grassColor[2] = temperatureColors[2];
+	}
+
+	@Override
+	public int compareTo(TerrainTile o) {
+		int rc = -1;
+		if (rangeToCamera > o.getRangeToCamera()) {
+			rc = 1;
+		}
+		return rc;
 	}
 }
