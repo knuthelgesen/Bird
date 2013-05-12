@@ -15,6 +15,7 @@ public class TerrainTileMesh {
 	private static Vertex3d[][] normalMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static double[][] moistureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static double[][] temperatureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+	private static double[][] steepnessMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 
 	static {
 		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
@@ -69,6 +70,10 @@ public class TerrainTileMesh {
 		double[][] terrainMoistureMap = terrain.getMoistureMap();
 		interpolateTileMap(terrainMoistureMap[tileX][tileZ], terrainMoistureMap[tileX + 1][tileZ], terrainMoistureMap[tileX][tileZ + 1], terrainMoistureMap[tileX + 1][tileZ + 1], moistureMap, 1);
 		
+		//Generate steepness map
+		double[][] terrainSteepnessMap = terrain.getSteepnessMap();
+		interpolateTileMap(terrainSteepnessMap[tileX][tileZ], terrainSteepnessMap[tileX + 1][tileZ], terrainSteepnessMap[tileX][tileZ + 1], terrainSteepnessMap[tileX + 1][tileZ + 1], steepnessMap, 1);
+		
 		TerrainTile[][] tiles = terrain.getTiles();
 		if (tileX > 0 && tiles[tileX - 1][tileZ] != null && tiles[tileX - 1][tileZ].isReadyForDrawing() && tiles[tileX - 1][tileZ].getDivisionSize() < divisionSize) {
 			stitchNegX = true;
@@ -96,8 +101,8 @@ public class TerrainTileMesh {
 		if (divisionSize == 1) {
 			heightMapDivisionSize = 1;
 		}
-		for (int x = 0; x < heightMapSize; x += 1) {
-			for (int z = 0; z < heightMapSize; z += 1) {
+		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
+			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
 //				heightMap[x][z] = generateHeightForPoint(x + xOffsetStart, z + zOffsetStart);
 //				heightMap[x][z] += noise.getHeight(x + xOffsetStart,z + zOffsetStart);
 			}
@@ -324,7 +329,8 @@ public class TerrainTileMesh {
 			textureP = 0.125;
 			colors[stripCount][vertexCount] = new Vertex3d(new double[]{1.0, 1.0, 1.0});
 		}
-		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.8) {
+//		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.8) {
+		if (vertex.values[1] > 5000 || steepnessMap[x][z] > 0.8) {
 			//Steep enough to be rock
 			textureP = 0.375;
 			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.75, 0.75, 0.75});

@@ -8,6 +8,7 @@ public class Terrain {
 	private double[][] heightMap;
 	private double[][] temperatureMap;
 	private double[][] moistureMap;
+	private double[][] steepnessMap;
 	private TerrainTile[][] tiles;
 	
 	public Terrain() {
@@ -50,11 +51,33 @@ public class Terrain {
 			}
 		}
 		
-		//Create moisture map and temperature map
+		//Create steepness map, moisture map and temperature map
 		temperatureMap = new double[heightMapSize][heightMapSize];
 		moistureMap = new double[heightMapSize][heightMapSize];
+		steepnessMap = new double[heightMapSize][heightMapSize];
 		for (int x = 0; x < heightMapSize; x++) {
 			for (int z = 0; z < heightMapSize; z++) {
+				//Generate steepness map
+				double y = heightMap[x][z];
+				int yCount = 0;
+				if (x > 0) {
+					steepnessMap[x][z] += Math.abs(heightMap[x - 1][z] - y);
+					yCount++;
+				}
+				if (x < Configuration.TERRAIN_SIZE) {
+					steepnessMap[x][z] += Math.abs(heightMap[x + 1][z] - y);
+					yCount++;
+				}
+				if (z > 0) {
+					steepnessMap[x][z] += Math.abs(heightMap[x][z - 1] - y);
+					yCount++;
+				}
+				if (z < Configuration.TERRAIN_SIZE) {
+					steepnessMap[x][z] += Math.abs(heightMap[x][z + 1] - y);
+					yCount++;
+				}
+				steepnessMap[x][z] = steepnessMap[x][z] / yCount;
+				
 				//Create temperature
 				temperatureMap[x][z] = Math.max(0.0, Math.min(1.0, (1.0 - (double)z / heightMapSize) - Math.max(0, (heightMap[x][z] / maxTileHeight / 2))));
 
@@ -104,6 +127,10 @@ public class Terrain {
 	
 	public double[][] getMoistureMap() {
 		return moistureMap;
+	}
+	
+	public double[][] getSteepnessMap() {
+		return steepnessMap;
 	}
 	
 	public TerrainTile[][] getTiles() {
