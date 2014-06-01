@@ -16,6 +16,8 @@ public class TerrainTileMesh {
 	private static double[][] moistureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static double[][] temperatureMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 	private static double[][] steepnessMap = new double[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+	private static Vertex3d[][] textureMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
+	private static Vertex3d[][] colorMap = new Vertex3d[Configuration.TERRAIN_TILE_SIZE + 1][Configuration.TERRAIN_TILE_SIZE + 1];
 
 	static {
 		int heightMapSize = Configuration.TERRAIN_TILE_SIZE + 1;
@@ -37,6 +39,8 @@ public class TerrainTileMesh {
 	private Vertex3d[][] colors;	//Colors (alpha will always be 1.0)
 	private int[] vertexCounts;
 	
+	private double[][] tileNoiseHeightMap;
+	
 	/**
 	 * Generate a mesh that can be rendered.
 	 * @param terrain
@@ -46,6 +50,7 @@ public class TerrainTileMesh {
 	 */
 	public void generateMeshFromHeightMap(Terrain terrain, TerrainTile tile) {
 		this.terrain = terrain;
+		tileNoiseHeightMap = terrain.getTileNoiseHeightMap();
 		
 		int tileX = tile.getTileX();
 		int tileZ = tile.getTileZ();
@@ -62,6 +67,21 @@ public class TerrainTileMesh {
 		double[][] terrainHeightMap = terrain.getHeightMap();
 		interpolateTileMap(terrainHeightMap[tileX][tileZ], terrainHeightMap[tileX + 1][tileZ], terrainHeightMap[tileX][tileZ + 1], terrainHeightMap[tileX + 1][tileZ + 1], heightMap, 150);
 
+		//Add the noise
+		for (int x = 0; x < heightMapSize; x++) {
+			for (int z = 0; z < heightMapSize; z++) {
+				if (x == Configuration.TERRAIN_TILE_SIZE && z == Configuration.TERRAIN_TILE_SIZE) {
+					heightMap[x][z] += tileNoiseHeightMap[0][0];
+				} else if (x == Configuration.TERRAIN_TILE_SIZE) {
+					heightMap[x][z] += tileNoiseHeightMap[0][z];
+				} else if (z == Configuration.TERRAIN_TILE_SIZE) {
+					heightMap[x][z] += tileNoiseHeightMap[x][0];
+				} else {
+					heightMap[x][z] += tileNoiseHeightMap[x % Configuration.TERRAIN_TILE_SIZE][z % Configuration.TERRAIN_TILE_SIZE];
+				}
+			}
+		}
+		
 		//Generate temperature map
 		double[][] terrainTemperatureMap = terrain.getTemperatureMap();
 		interpolateTileMap(terrainTemperatureMap[tileX][tileZ], terrainTemperatureMap[tileX + 1][tileZ], terrainTemperatureMap[tileX][tileZ + 1], terrainTemperatureMap[tileX + 1][tileZ + 1], temperatureMap, 1);
@@ -73,6 +93,13 @@ public class TerrainTileMesh {
 		//Generate steepness map
 		double[][] terrainSteepnessMap = terrain.getSteepnessMap();
 		interpolateTileMap(terrainSteepnessMap[tileX][tileZ], terrainSteepnessMap[tileX + 1][tileZ], terrainSteepnessMap[tileX][tileZ + 1], terrainSteepnessMap[tileX + 1][tileZ + 1], steepnessMap, 1);
+
+		for (int x = 0; x < heightMapSize; x++) {
+			for (int z = 0; z < heightMapSize; z++) {
+				createTextureCoordsForPoint(x, z);
+				createColorForPoint(x, z);
+			}
+		}
 		
 		TerrainTile[][] tiles = terrain.getTiles();
 		if (tileX > 0 && tiles[tileX - 1][tileZ] != null && tiles[tileX - 1][tileZ].isReadyForDrawing() && tiles[tileX - 1][tileZ].getDivisionSize() < divisionSize) {
@@ -101,18 +128,13 @@ public class TerrainTileMesh {
 		if (divisionSize == 1) {
 			heightMapDivisionSize = 1;
 		}
-		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
-			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
-//				heightMap[x][z] = generateHeightForPoint(x + xOffsetStart, z + zOffsetStart);
-//				heightMap[x][z] += noise.getHeight(x + xOffsetStart,z + zOffsetStart);
-			}
-		}
+		
 		for (int x = 0; x < heightMapSize; x += heightMapDivisionSize) {
 			for (int z = 0; z < heightMapSize; z += heightMapDivisionSize) {
 				createNormalForPoint(x, z, xOffsetStart, zOffsetStart, heightMapDivisionSize);
 			}
 		}
-		
+
 		//Generate triangle strips
 		strips = new Vertex3d[detail][];
 		normals = new Vertex3d[detail][];
@@ -316,26 +338,11 @@ public class TerrainTileMesh {
 	
 	private void createDataForPoint(int stripCount, int vertexCount, int x, int z, int xOffsetStart, int zOffsetStart) {
 		Vertex3d vertex = createVertexForPoint(x, z, xOffsetStart, zOffsetStart);
-		double temperature = temperatureMap[x][z];
-		double moisture = moistureMap[x][z];
 		//Get the normal
 		normals[stripCount][vertexCount] = new Vertex3d(normalMap[x][z]);
 		
-		//Calculate which texture and color to use
-		double textureP = 0.875;	//Set initially to grass
-		colors[stripCount][vertexCount] = calculateGrassColors(temperature, moisture);
-		if (vertex.values[1] < 5) {
-			//Steep enough to be sand
-			textureP = 0.125;
-			colors[stripCount][vertexCount] = new Vertex3d(new double[]{1.0, 1.0, 1.0});
-		}
-//		if (vertex.values[1] > 5000 || normals[stripCount][vertexCount].values[1] < 0.8) {
-		if (vertex.values[1] > 5000 || steepnessMap[x][z] > 0.8) {
-			//Steep enough to be rock
-			textureP = 0.375;
-			colors[stripCount][vertexCount] = new Vertex3d(new double[]{0.75, 0.75, 0.75});
-		}
-		textureCoords[stripCount][vertexCount] = createTextureCoordsForPoint(x, z, textureP);
+		textureCoords[stripCount][vertexCount] = textureMap[x][z];
+		colors[stripCount][vertexCount] = colorMap[x][z];
 		
 		//Generate the vertex
 		strips[stripCount][vertexCount++] = vertex;
@@ -400,8 +407,36 @@ public class TerrainTileMesh {
 		normalMap[x][z].normalize();
 	}
 	
-	private Vertex3d createTextureCoordsForPoint(int x, int z, double p) {
-		return new Vertex3d(new double[]{x, z, p});
+	private void createTextureCoordsForPoint(int x, int z) {
+		//Calculate which texture and color to use
+		double p = 0.875;	//Set initially to grass
+		if (heightMap[x][z] < 5) {
+			//Steep enough to be sand
+			p = 0.125;
+		}
+		if (heightMap[x][z] > 5000 || steepnessMap[x][z] > 0.8) {
+			//Steep enough to be rock
+			p = 0.375;
+		}
+		
+		textureMap[x][z] = new Vertex3d(new double[]{x, z, p});
+	}
+	
+	private void createColorForPoint(int x, int z) {
+		Vertex3d rc;
+		if (heightMap[x][z] > 5000 || steepnessMap[x][z] > 0.8) {
+			//Steep enough to be rock
+			rc = new Vertex3d(new double[]{0.75, 0.75, 0.75});
+		} else if (heightMap[x][z] < 5) {
+			//Steep enough to be sand
+			rc = new Vertex3d(new double[]{1.0, 1.0, 1.0});
+		} else {
+			double temperature = temperatureMap[x][z];
+			double moisture = moistureMap[x][z];
+			rc = calculateGrassColors(temperature, moisture);
+		}
+
+		colorMap[x][z] = rc;
 	}
 	
 	/**
@@ -411,8 +446,12 @@ public class TerrainTileMesh {
 	 * @return
 	 */
 	private double generateHeightForPoint(int x, int z) {
-//		return terrain.getHeightAt(x, z) + noise.getHeight(x,z);
-		return terrain.getHeightAt(x, z);
+		double rc = terrain.getHeightAt(x, z);
+		x = (Configuration.TERRAIN_TILE_SIZE + x) % (Configuration.TERRAIN_TILE_SIZE);
+		z = (Configuration.TERRAIN_TILE_SIZE + x) % (Configuration.TERRAIN_TILE_SIZE);
+		return rc + tileNoiseHeightMap[x][z];
+		
+//		return terrain.getHeightAt(x, z) + 100;
 	}
 	
 	/**

@@ -84,7 +84,7 @@ public class TerrainTileManager {
 				for (TerrainTile tile : tileSet) {
 					int range = calculateRange(cameraTileX, tile.getTileX(), cameraTileZ, tile.getTileZ());
 					tile.setRangeToCamera(range);
-					if (range > 150) {
+					if (range > 50) {
 						if (tile.isReadyForDrawing()) {
 							unusedMeshes.add(tile.dropMesh());
 						}
@@ -111,7 +111,7 @@ public class TerrainTileManager {
 				
 				synchronized (lock) {
 					try {
-						lock.wait(100);
+						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

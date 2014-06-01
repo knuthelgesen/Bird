@@ -30,10 +30,6 @@ public class PNGImageLoader {
 	private static final ColorModel GL_COLOR_MODEL = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] { 8, 8, 8, 0 }, false, false,
 			ComponentColorModel.OPAQUE, DataBuffer.TYPE_BYTE);
 
-	public void load2DTexture() {
-		
-	}
-	
 	/**
 	 * Load images from file into a 3D texture, in the order the filenames are given. Will not register the texture with OpenGL
 	 * @param texture

@@ -120,10 +120,10 @@ public class App
     		updateCamera(camera);
     		
     		//Lock to 60 FPS
-    		Display.sync(60);
     		
     		//Update display
     		Display.update();
+    		Display.sync(60);
     	}
     	
     	terrainTileManager.stopTerrainTileUpdateThread();

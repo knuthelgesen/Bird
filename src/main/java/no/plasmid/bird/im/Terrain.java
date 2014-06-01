@@ -1,6 +1,13 @@
 package no.plasmid.bird.im;
 
+import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import org.lwjgl.opengl.GL11;
+
 import no.plasmid.bird.Configuration;
+import no.plasmid.bird.util.PNGImageLoader;
 import no.plasmid.bird.util.PerlinNoise;
 
 public class Terrain {
@@ -11,7 +18,34 @@ public class Terrain {
 	private double[][] steepnessMap;
 	private TerrainTile[][] tiles;
 	
+	//These values are common for all the tiles. Therefore stored here
+	private double[][] tileNoiseHeightMap;
+	
 	public Terrain() {
+		//Load and process the tile noise height map
+		tileNoiseHeightMap = new double[Configuration.TERRAIN_TILE_SIZE][Configuration.TERRAIN_TILE_SIZE];
+		try {
+			//Load the noise map for terrain tiles, and store the values for height and steepness
+			PNGImageLoader imageLoader = new PNGImageLoader();
+			Texture noiseTexture = new Texture(GL11.GL_RGBA, 256, 256, 1);
+			imageLoader.loadTexture(noiseTexture, new String[]{"/img/noisea256.png"});
+			ByteBuffer data = noiseTexture.getImageData();
+			data.order(ByteOrder.LITTLE_ENDIAN);
+			data.rewind();
+			for (int x = 0; x < Configuration.TERRAIN_TILE_SIZE; x++) {
+				for (int z = 0; z < Configuration.TERRAIN_TILE_SIZE; z++) {
+					short s = data.get();
+					if (s < 0)
+						s = (short)-s;
+					tileNoiseHeightMap[x][z] = (double)s * 15.0 / 256;
+					data.position(data.position() + 3);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			//TODO log
+			//Use 0 as noise values
+		}
+		
 		int heightMapSize = Configuration.TERRAIN_SIZE + 1;
 
 		//Generate tiles
@@ -135,6 +169,10 @@ public class Terrain {
 	
 	public TerrainTile[][] getTiles() {
 		return tiles;
+	}
+
+	public double[][] getTileNoiseHeightMap() {
+		return tileNoiseHeightMap;
 	}
 	
 	/**
